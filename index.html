@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to AI Zombo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607);
+            background-size: 400% 400%;
+            animation: psychedelicGradient 8s ease infinite;
+            font-family: 'Courier New', monospace;
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        @keyframes psychedelicGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            z-index: -1;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 14px;
+            color: #ffffff;
+            filter: hue-rotate(0deg);
+            animation: colorShift 4s linear infinite;
+        }
+
+        @keyframes colorShift {
+            0% { filter: hue-rotate(0deg) brightness(1); }
+            25% { filter: hue-rotate(90deg) brightness(1.5); }
+            50% { filter: hue-rotate(180deg) brightness(1); }
+            75% { filter: hue-rotate(270deg) brightness(1.5); }
+            100% { filter: hue-rotate(360deg) brightness(1); }
+        }
+
+        .container {
+            text-align: center;
+            z-index: 2;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 4em;
+            margin: 20px 0;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.5);
+            animation: psychedelicPulse 3s infinite, textGlow 2s infinite alternate;
+        }
+
+        @keyframes psychedelicPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); filter: hue-rotate(0deg); }
+            25% { transform: scale(1.05) rotate(1deg); filter: hue-rotate(90deg); }
+            50% { transform: scale(1.1) rotate(0deg); filter: hue-rotate(180deg); }
+            75% { transform: scale(1.05) rotate(-1deg); filter: hue-rotate(270deg); }
+        }
+
+        @keyframes textGlow {
+            0% { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 20px rgba(255,0,255,0.8); }
+            100% { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 40px rgba(0,255,255,0.8); }
+        }
+
+        .tagline {
+            font-size: 1.8em;
+            margin: 30px 0;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7), 0 0 15px rgba(255,255,255,0.6);
+            animation: taglineShift 4s infinite;
+        }
+
+        @keyframes taglineShift {
+            0%, 100% { filter: hue-rotate(0deg); transform: translateY(0px); }
+            50% { filter: hue-rotate(180deg); transform: translateY(-5px); }
+        }
+
+        .neural-network {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            opacity: 0.15;
+            z-index: -1;
+            animation: networkRotate 20s linear infinite;
+        }
+
+        @keyframes networkRotate {
+            0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+            50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.2); }
+            100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
+        }
+
+        .node {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: psychedelicNode 2s infinite;
+            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+        }
+
+        @keyframes psychedelicNode {
+            0%, 100% {
+                opacity: 0.3;
+                filter: hue-rotate(0deg);
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                filter: hue-rotate(180deg);
+                transform: scale(1.5);
+            }
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            border: 2px solid white;
+            margin: 30px auto;
+            position: relative;
+            background: transparent;
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+            animation: barGlow 3s infinite;
+        }
+
+        @keyframes barGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,0,255,0.5); }
+            50% { box-shadow: 0 0 30px rgba(0,255,255,0.8); }
+        }
+
+        .loading-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0080, #0080ff, #80ff00, #ff8000, #8000ff);
+            background-size: 200% 100%;
+            width: 0%;
+            animation: loading 8s infinite, gradientShift 3s linear infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        @keyframes loading {
+            0% { width: 0%; }
+            95% { width: 95%; }
+            100% { width: 95%; }
+        }
+
+        .status-text {
+            margin-top: 15px;
+            font-size: 1em;
+            height: 20px;
+            animation: statusPulse 2s infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 0.8; filter: hue-rotate(0deg); }
+            50% { opacity: 1; filter: hue-rotate(90deg); }
+        }
+        @keyframes buttonPsychedelic {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .disclaimer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8em;
+            opacity: 0.7;
+            max-width: 600px;
+            text-align: center;
+            animation: disclaimerShimmer 3s infinite;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="matrix-bg" id="matrixBg"></div>
+
+    <div class="neural-network" id="neuralNetwork"></div>
+
+    <div class="container">
+        <h1>AI ZOMBO</h1>
+        <div class="tagline">The only limit is your neural network</div>
+
+        <div class="loading-bar">
+            <div class="loading-fill"></div>
+        </div>
+        <div class="status-text" id="statusText">Initializing large language model...</div>
+    </div>
+
+    <div class="disclaimer">
+        This site uses advanced machine learning algorithms to revolutionize your browsing experience through synergistic AI-powered solutions.
+    </div>
+
+    <script>
+        // Matrix-like background effect
+        function createMatrix() {
+            const matrixBg = document.getElementById('matrixBg');
+            const chars = '01AGI∞λΨ∇∂∫∑π∆Ω';
+
+            for (let i = 0; i < 100; i++) {
+                const span = document.createElement('span');
+                span.textContent = chars[Math.floor(Math.random() * chars.length)];
+                span.style.position = 'absolute';
+                span.style.left = Math.random() * 100 + '%';
+                span.style.top = Math.random() * 100 + '%';
+                span.style.animationDelay = Math.random() * 2 + 's';
+                span.style.animation = 'fadeInOut 3s infinite';
+                matrixBg.appendChild(span);
+            }
+        }
+
+        // Neural network nodes
+        function createNeuralNetwork() {
+            const network = document.getElementById('neuralNetwork');
+
+            for (let i = 0; i < 20; i++) {
+                const node = document.createElement('div');
+                node.className = 'node';
+                node.style.left = Math.random() * 100 + '%';
+                node.style.top = Math.random() * 100 + '%';
+                node.style.animationDelay = Math.random() * 3 + 's';
+                network.appendChild(node);
+            }
+        }
+
+        // Remove the rotating features functionality
+
+        let currentStatus = 0;
+
+        const statusTexts = [
+            'Initializing large language model...',
+            'Training neural networks...',
+            'Processing natural language...',
+            'Optimizing hyperparameters...',
+            'Deploying transformer architecture...',
+            'Achieving artificial general intelligence...',
+            'Calculating probability distributions...',
+            'Generating synthetic data...',
+            'Fine-tuning foundation models...',
+            'Scaling compute clusters...'
+        ];
+
+        setInterval(() => {
+            document.getElementById('statusText').textContent = statusTexts[currentStatus];
+            currentStatus = (currentStatus + 1) % statusTexts.length;
+        }, 2000);
+
+        // Initialize effects
+        createMatrix();
+        createNeuralNetwork();
+
+        // Text-to-speech functionality
+        let speechSynth = window.speechSynthesis;
+        let currentUtterance = null;
+        let isPlaying = false;
+
+        // Voice phrases in Zombo.com style
+        const voicePhrases = [
+            "Welcome to A I Zombo",
+            "You can do anything at A I Zombo",
+            "Anything at all",
+            "The only limit is your artificial intelligence",
+            "You can train neural networks at A I Zombo",
+            "You can deploy machine learning models at A I Zombo",
+            "You can achieve artificial general intelligence at A I Zombo",
+            "You can disrupt entire industries at A I Zombo",
+            "You can fine-tune your parameters at A I Zombo",
+            "You can optimize your loss functions at A I Zombo",
+            "You can process natural language at A I Zombo",
+            "You can generate infinite possibilities at A I Zombo",
+            "You can backpropagate your gradients at A I Zombo",
+            "You can scale your algorithms at A I Zombo",
+            "You can transform your business with A I at A I Zombo",
+            "The future is now at A I Zombo",
+            "Welcome to A I Zombo dot com"
+        ];
+
+        let currentPhraseIndex = 0;
+
+        function speak(text) {
+            if (speechSynth.speaking) {
+                speechSynth.cancel();
+            }
+
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = 0.8;
+            currentUtterance.pitch = 1.1;
+            currentUtterance.volume = 0.8;
+
+            // Try to use a more dramatic voice if available
+            const voices = speechSynth.getVoices();
+            const preferredVoices = voices.filter(voice =>
+                voice.name.includes('Daniel') ||
+                voice.name.includes('Alex') ||
+                voice.name.includes('Fred') ||
+                voice.name.includes('Male')
+            );
+
+            if (preferredVoices.length > 0) {
+                currentUtterance.voice = preferredVoices[0];
+            }
+
+            currentUtterance.onend = () => {
+                setTimeout(() => {
+                    if (isPlaying) {
+                        currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                        speak(voicePhrases[currentPhraseIndex]);
+                    }
+                }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
+            };
+
+            speechSynth.speak(currentUtterance);
+        }
+
+        function startVoice() {
+            if (!isPlaying) {
+                isPlaying = true;
+                speak(voicePhrases[0]);
+                document.getElementById('voiceButton').textContent = 'Stop Voice';
+            } else {
+                isPlaying = false;
+                speechSynth.cancel();
+                document.getElementById('voiceButton').textContent = 'Start Voice';
+            }
+        }
+
+        // Auto-start voice when page loads
+        window.addEventListener('load', () => {
+            // Small delay to ensure everything is loaded
+            setTimeout(() => {
+                isPlaying = true;
+                speak(voicePhrases[0]);
+            }, 1500);
+        });
+
+        // Konami code easter egg for extra AI buzzwords
+        let konamiCode = [];
+        const konamiSequence = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // ↑↑↓↓←→←→BA
+
+        document.addEventListener('keydown', (e) => {
+            konamiCode.push(e.keyCode);
+            if (konamiCode.length > konamiSequence.length) {
+                konamiCode.shift();
+            }
+
+            if (JSON.stringify(konamiCode) === JSON.stringify(konamiSequence)) {
+                document.querySelector('.tagline').innerHTML = 'MAXIMUM AI ACHIEVED<br>CONSCIOUSNESS UNLOCKED';
+                document.body.style.animation = 'pulse 0.5s infinite';
+                if (isPlaying) {
+                    speechSynth.cancel();
+                    speak('Maximum A I achieved. Consciousness unlocked at A I Zombo.');
+                }
+                setTimeout(() => {
+                    document.body.style.animation = '';
+                    document.querySelector('.tagline').textContent = 'The only limit is your neural network';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
