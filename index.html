@@ -500,8 +500,12 @@
             🔊 ACTIVATE AI VOICE
         </button>
 
+        <button id="testSpeechButton" class="start-audio-button" onclick="testSpeech()" style="margin-top: 15px; padding: 10px 20px; font-size: 1em; background: linear-gradient(45deg, #ff4500, #ff6b35, #ff8c69);">
+            🗣️ TEST SPEECH
+        </button>
+
         <button id="backgroundMusicButton" class="start-audio-button" onclick="toggleBackgroundMusic()" style="margin-top: 15px; padding: 10px 20px; font-size: 1em; display: none;">
-            � COCKTAIL JAZZ
+            🎵 COCKTAIL JAZZ
         </button>
     </div>
 
@@ -516,6 +520,44 @@
     <script>
         function startExperience() {
             // This function is no longer needed but keeping for compatibility
+        }
+
+        function testSpeech() {
+            console.log('=== TESTING SPEECH DIRECTLY ===');
+            
+            // Cancel any existing speech
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
+            
+            setTimeout(() => {
+                const testUtterance = new SpeechSynthesisUtterance("Testing speech synthesis. Can you hear me?");
+                testUtterance.volume = 1.0;
+                testUtterance.rate = 0.8;
+                testUtterance.pitch = 1.0;
+                
+                testUtterance.onstart = () => {
+                    console.log('🔊 TEST SPEECH STARTED - YOU SHOULD HEAR AUDIO NOW!');
+                };
+                
+                testUtterance.onend = () => {
+                    console.log('✅ Test speech completed');
+                };
+                
+                testUtterance.onerror = (e) => {
+                    console.error('❌ Test speech failed:', e);
+                };
+                
+                console.log('Speaking test phrase...');
+                speechSynthesis.speak(testUtterance);
+                
+                // Chrome fix
+                setTimeout(() => {
+                    if (speechSynthesis.paused) {
+                        speechSynthesis.resume();
+                    }
+                }, 100);
+            }, 100);
         }
 
         async function startAudio() {
@@ -795,12 +837,16 @@
                 }
 
                 // Configure for pompous British delivery
-                utterance.rate = 0.65; // Slower for more dramatic effect
-                utterance.pitch = 0.85; // Slightly lower pitch for authority
-                utterance.volume = 1.0; // Full volume
+                utterance.rate = 0.7; // Slower for more dramatic effect  
+                utterance.pitch = 0.9; // Slightly lower pitch for authority
+                utterance.volume = 1.0; // Maximum volume
+
+                // Force language to British English
+                utterance.lang = 'en-GB';
 
                 utterance.onstart = () => {
                     console.log('✅ Web Speech API speaking:', text);
+                    console.log('🔊 AUDIO SHOULD BE PLAYING NOW!');
                 };
 
                 utterance.onend = () => {
@@ -831,7 +877,20 @@
                 // Add a small delay before speaking to ensure synthesis is ready
                 setTimeout(() => {
                     console.log('Attempting to speak with Web Speech API...');
+                    
+                    // Force resume synthesis (Chrome fix)
+                    if (speechSynthesis.paused) {
+                        speechSynthesis.resume();
+                    }
+                    
                     speechSynthesis.speak(utterance);
+                    
+                    // Extra Chrome fix - resume after a short delay
+                    setTimeout(() => {
+                        if (speechSynthesis.paused) {
+                            speechSynthesis.resume();
+                        }
+                    }, 100);
                 }, 100);
             }
 
