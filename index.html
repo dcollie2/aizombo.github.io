@@ -28,6 +28,32 @@
             100% { background-position: 0% 50%; }
         }
 
+        .click-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .click-message {
+            text-align: center;
+            font-size: 2em;
+            color: white;
+            animation: clickPulse 2s infinite;
+        }
+
+        @keyframes clickPulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
         .matrix-bg {
             position: fixed;
             top: 0;
@@ -178,11 +204,6 @@
             0%, 100% { opacity: 0.8; filter: hue-rotate(0deg); }
             50% { opacity: 1; filter: hue-rotate(90deg); }
         }
-        @keyframes buttonPsychedelic {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
 
         .disclaimer {
             position: fixed;
@@ -196,9 +217,25 @@
             animation: disclaimerShimmer 3s infinite;
         }
 
+        @keyframes disclaimerShimmer {
+            0%, 100% { filter: hue-rotate(0deg); opacity: 0.7; }
+            50% { filter: hue-rotate(120deg); opacity: 0.9; }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.1; transform: scale(0.8); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
     </style>
 </head>
 <body>
+    <div id="clickOverlay" class="click-overlay" onclick="startExperience()">
+        <div class="click-message">
+            Click anywhere to enter<br>
+            AI ZOMBO
+        </div>
+    </div>
+
     <div class="matrix-bg" id="matrixBg"></div>
 
     <div class="neural-network" id="neuralNetwork"></div>
@@ -218,6 +255,101 @@
     </div>
 
     <script>
+        function startExperience() {
+            document.getElementById('clickOverlay').style.display = 'none';
+            isPlaying = true;
+            
+            // Wait for voices to load before speaking
+            if (speechSynth.getVoices().length === 0) {
+                speechSynth.addEventListener('voiceschanged', function() {
+                    speak(voicePhrases[0]);
+                }, { once: true });
+            } else {
+                speak(voicePhrases[0]);
+            }
+        }
+
+        // Text-to-speech functionality
+        let speechSynth = window.speechSynthesis;
+        let currentUtterance = null;
+        let isPlaying = false;
+
+        // Voice phrases in Zombo.com style
+        const voicePhrases = [
+            "Welcome to A I Zombo",
+            "You can do anything at A I Zombo",
+            "Anything at all",
+            "The only limit is your artificial intelligence",
+            "You can train neural networks at A I Zombo",
+            "You can deploy machine learning models at A I Zombo",
+            "You can achieve artificial general intelligence at A I Zombo",
+            "You can disrupt entire industries at A I Zombo",
+            "You can fine-tune your parameters at A I Zombo",
+            "You can optimize your loss functions at A I Zombo",
+            "You can process natural language at A I Zombo",
+            "You can generate infinite possibilities at A I Zombo",
+            "You can backpropagate your gradients at A I Zombo",
+            "You can scale your algorithms at A I Zombo",
+            "You can transform your business with A I at A I Zombo",
+            "The future is now at A I Zombo",
+            "Welcome to A I Zombo dot com"
+        ];
+
+        let currentPhraseIndex = 0;
+
+        function speak(text) {
+            if (!speechSynth) {
+                console.warn('Speech synthesis not supported');
+                return;
+            }
+
+            if (speechSynth.speaking) {
+                speechSynth.cancel();
+            }
+
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = 0.8;
+            currentUtterance.pitch = 1.1;
+            currentUtterance.volume = 0.8;
+
+            // Try to use a more dramatic voice if available
+            const voices = speechSynth.getVoices();
+            if (voices.length > 0) {
+                const preferredVoices = voices.filter(voice =>
+                    voice.name.includes('Daniel') ||
+                    voice.name.includes('Alex') ||
+                    voice.name.includes('Fred') ||
+                    voice.name.includes('Male')
+                );
+
+                if (preferredVoices.length > 0) {
+                    currentUtterance.voice = preferredVoices[0];
+                } else {
+                    // Fallback to first available voice
+                    currentUtterance.voice = voices[0];
+                }
+            }
+
+            currentUtterance.onend = () => {
+                setTimeout(() => {
+                    if (isPlaying) {
+                        currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                        speak(voicePhrases[currentPhraseIndex]);
+                    }
+                }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
+            };
+
+            currentUtterance.onerror = (event) => {
+                console.warn('Speech synthesis error:', event);
+            };
+
+            try {
+                speechSynth.speak(currentUtterance);
+            } catch (error) {
+                console.error('Error speaking:', error);
+            }
+        }
+
         // Matrix-like background effect
         function createMatrix() {
             const matrixBg = document.getElementById('matrixBg');
@@ -249,10 +381,6 @@
             }
         }
 
-        // Remove the rotating features functionality
-
-        let currentStatus = 0;
-
         const statusTexts = [
             'Initializing large language model...',
             'Training neural networks...',
@@ -266,98 +394,12 @@
             'Scaling compute clusters...'
         ];
 
+        let currentStatus = 0;
+
         setInterval(() => {
             document.getElementById('statusText').textContent = statusTexts[currentStatus];
             currentStatus = (currentStatus + 1) % statusTexts.length;
         }, 2000);
-
-        // Initialize effects
-        createMatrix();
-        createNeuralNetwork();
-
-        // Text-to-speech functionality
-        let speechSynth = window.speechSynthesis;
-        let currentUtterance = null;
-        let isPlaying = false;
-
-        // Voice phrases in Zombo.com style
-        const voicePhrases = [
-            "Welcome to A I Zombo",
-            "You can do anything at A I Zombo",
-            "Anything at all",
-            "The only limit is your artificial intelligence",
-            "You can train neural networks at A I Zombo",
-            "You can deploy machine learning models at A I Zombo",
-            "You can achieve artificial general intelligence at A I Zombo",
-            "You can disrupt entire industries at A I Zombo",
-            "You can fine-tune your parameters at A I Zombo",
-            "You can optimize your loss functions at A I Zombo",
-            "You can process natural language at A I Zombo",
-            "You can generate infinite possibilities at A I Zombo",
-            "You can backpropagate your gradients at A I Zombo",
-            "You can scale your algorithms at A I Zombo",
-            "You can transform your business with A I at A I Zombo",
-            "The future is now at A I Zombo",
-            "Welcome to A I Zombo dot com"
-        ];
-
-        let currentPhraseIndex = 0;
-
-        function speak(text) {
-            if (speechSynth.speaking) {
-                speechSynth.cancel();
-            }
-
-            currentUtterance = new SpeechSynthesisUtterance(text);
-            currentUtterance.rate = 0.8;
-            currentUtterance.pitch = 1.1;
-            currentUtterance.volume = 0.8;
-
-            // Try to use a more dramatic voice if available
-            const voices = speechSynth.getVoices();
-            const preferredVoices = voices.filter(voice =>
-                voice.name.includes('Daniel') ||
-                voice.name.includes('Alex') ||
-                voice.name.includes('Fred') ||
-                voice.name.includes('Male')
-            );
-
-            if (preferredVoices.length > 0) {
-                currentUtterance.voice = preferredVoices[0];
-            }
-
-            currentUtterance.onend = () => {
-                setTimeout(() => {
-                    if (isPlaying) {
-                        currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
-                        speak(voicePhrases[currentPhraseIndex]);
-                    }
-                }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
-            };
-
-            speechSynth.speak(currentUtterance);
-        }
-
-        function startVoice() {
-            if (!isPlaying) {
-                isPlaying = true;
-                speak(voicePhrases[0]);
-                document.getElementById('voiceButton').textContent = 'Stop Voice';
-            } else {
-                isPlaying = false;
-                speechSynth.cancel();
-                document.getElementById('voiceButton').textContent = 'Start Voice';
-            }
-        }
-
-        // Auto-start voice when page loads
-        window.addEventListener('load', () => {
-            // Small delay to ensure everything is loaded
-            setTimeout(() => {
-                isPlaying = true;
-                speak(voicePhrases[0]);
-            }, 1500);
-        });
 
         // Konami code easter egg for extra AI buzzwords
         let konamiCode = [];
@@ -371,7 +413,7 @@
 
             if (JSON.stringify(konamiCode) === JSON.stringify(konamiSequence)) {
                 document.querySelector('.tagline').innerHTML = 'MAXIMUM AI ACHIEVED<br>CONSCIOUSNESS UNLOCKED';
-                document.body.style.animation = 'pulse 0.5s infinite';
+                document.body.style.animation = 'psychedelicPulse 0.5s infinite';
                 if (isPlaying) {
                     speechSynth.cancel();
                     speak('Maximum A I achieved. Consciousness unlocked at A I Zombo.');
@@ -381,6 +423,12 @@
                     document.querySelector('.tagline').textContent = 'The only limit is your neural network';
                 }, 3000);
             }
+        });
+
+        // Initialize effects when page loads
+        window.addEventListener('load', () => {
+            createMatrix();
+            createNeuralNetwork();
         });
     </script>
 </body>
