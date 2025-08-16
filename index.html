@@ -519,6 +519,24 @@
             document.getElementById('startAudioButton').innerHTML = '🎵 AI VOICE ACTIVE';
             document.getElementById('startAudioButton').classList.add('playing');
             
+            // Chrome-specific fix: Test speech synthesis immediately
+            const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+            if (isChrome) {
+                console.log('Chrome detected - testing speech synthesis');
+                
+                // Create a short test utterance to "unlock" speech synthesis
+                const testUtterance = new SpeechSynthesisUtterance('');
+                testUtterance.volume = 0.01;
+                speechSynth.speak(testUtterance);
+                
+                // Small delay then start the real speech
+                setTimeout(() => {
+                    speak(voicePhrases[0]);
+                }, 100);
+                
+                return;
+            }
+            
             // Safari-specific fix: Force voice loading
             if (typeof speechSynth.getVoices === 'function') {
                 const voices = speechSynth.getVoices();
@@ -648,7 +666,7 @@
             }
 
             currentUtterance.onstart = () => {
-                console.log('Speech started');
+                console.log('Speech started successfully!');
             };
 
             currentUtterance.onend = () => {
@@ -663,11 +681,37 @@
 
             currentUtterance.onerror = (event) => {
                 console.error('Speech synthesis error:', event);
+                console.log('Error reason:', event.error);
+                // Try again with a different approach
+                setTimeout(() => {
+                    console.log('Retrying speech...');
+                    const retryUtterance = new SpeechSynthesisUtterance(text);
+                    retryUtterance.rate = 0.8;
+                    retryUtterance.pitch = 1.1;
+                    retryUtterance.volume = 0.8;
+                    speechSynth.speak(retryUtterance);
+                }, 1000);
             };
 
             try {
                 console.log('Calling speechSynth.speak()');
                 speechSynth.speak(currentUtterance);
+                
+                // Chrome-specific fix: Force speech to start
+                setTimeout(() => {
+                    if (!speechSynth.speaking && !speechSynth.pending) {
+                        console.log('Chrome: Speech not starting, trying alternative approach');
+                        // Cancel any pending speech
+                        speechSynth.cancel();
+                        setTimeout(() => {
+                            console.log('Chrome: Retrying speech synthesis');
+                            speechSynth.speak(currentUtterance);
+                        }, 100);
+                    } else {
+                        console.log('Chrome: Speech is working, speaking:', speechSynth.speaking, 'pending:', speechSynth.pending);
+                    }
+                }, 500);
+                
             } catch (error) {
                 console.error('Error speaking:', error);
             }
