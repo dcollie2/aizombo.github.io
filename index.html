@@ -616,11 +616,16 @@
             // Google Translate TTS endpoint with British English voice - HTTPS for GitHub Pages
             const encodedText = encodeURIComponent(text);
             // Use British English (en-GB) with slower speed for pompous delivery
-            const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en-GB&client=tw-ob&ttsspeed=0.6&total=1&idx=0&textlen=${text.length}`;
+            // Add random cache buster to avoid caching issues
+            const cacheBuster = Math.floor(Math.random() * 10000);
+            const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en-GB&client=tw-ob&ttsspeed=0.6&total=1&idx=0&textlen=${text.length}&cache=${cacheBuster}`;
+
+            console.log('Google TTS URL:', ttsUrl);
 
             currentAudio = new Audio(ttsUrl);
             currentAudio.volume = 1.0;
             currentAudio.playbackRate = 0.85; // Slightly slower for more dramatic effect
+            currentAudio.crossOrigin = "anonymous"; // Try to handle CORS
 
             currentAudio.onloadstart = () => {
                 console.log('Google TTS audio loading...');
@@ -632,13 +637,59 @@
                     console.log('SUCCESS: Google TTS audio playing!');
                 }).catch(error => {
                     console.error('Google TTS playback failed:', error);
-                    // Fallback to next in queue
+                    // Immediate fallback to Web Speech
+                    if ('speechSynthesis' in window) {
+                        console.log('Immediate fallback to Web Speech API...');
+                        fallbackToWebSpeech(text);
+                    } else {
+                        // Fallback to next in queue
+                        audioQueue.shift();
+                        setTimeout(processAudioQueue, 500);
+                    }
+                });
+            };
+
+            // Set up timeout for Google TTS loading
+            const loadTimeout = setTimeout(() => {
+                console.log('Google TTS load timeout - falling back to Web Speech');
+                if (currentAudio && currentAudio.readyState < 2) {
+                    currentAudio.pause();
+                    currentAudio.src = '';
+                    // Remove from queue and try Web Speech
                     audioQueue.shift();
-                    setTimeout(processAudioQueue, 500);
+                    if ('speechSynthesis' in window) {
+                        fallbackToWebSpeech(text);
+                    } else {
+                        // Move to next phrase
+                        if (isPlaying) {
+                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                            speak(voicePhrases[currentPhraseIndex]);
+                        }
+                    }
+                }
+            }, 8000); // 8 second timeout
+
+            currentAudio.oncanplaythrough = () => {
+                clearTimeout(loadTimeout);
+                console.log('Google TTS audio ready to play');
+                currentAudio.play().then(() => {
+                    console.log('SUCCESS: Google TTS audio playing!');
+                }).catch(error => {
+                    console.error('Google TTS playback failed:', error);
+                    // Immediate fallback to Web Speech
+                    if ('speechSynthesis' in window) {
+                        console.log('Immediate fallback to Web Speech API...');
+                        fallbackToWebSpeech(text);
+                    } else {
+                        // Fallback to next in queue
+                        audioQueue.shift();
+                        setTimeout(processAudioQueue, 500);
+                    }
                 });
             };
 
             currentAudio.onended = () => {
+                clearTimeout(loadTimeout);
                 console.log('Google TTS audio ended');
                 audioQueue.shift(); // Remove completed audio
 
@@ -656,13 +707,25 @@
             };
 
             currentAudio.onerror = (error) => {
+                clearTimeout(loadTimeout);
                 console.error('Google TTS audio error:', error);
                 audioQueue.shift(); // Remove failed audio
                 
                 // Try Web Speech API fallback
                 if ('speechSynthesis' in window) {
-                    console.log('Falling back to Web Speech API...');
-                    fallbackToWebSpeech(text);
+                    console.log('Falling back to Web Speech API for:', text);
+                    try {
+                        fallbackToWebSpeech(text);
+                    } catch (fallbackError) {
+                        console.error('Web Speech fallback also failed:', fallbackError);
+                        // Continue to next phrase if fallback fails
+                        if (isPlaying) {
+                            setTimeout(() => {
+                                currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                                speak(voicePhrases[currentPhraseIndex]);
+                            }, 1000);
+                        }
+                    }
                 } else {
                     console.log('No speech synthesis available, continuing...');
                     setTimeout(() => {
