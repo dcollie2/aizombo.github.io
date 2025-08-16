@@ -519,7 +519,7 @@
         }
 
     async function startAudio() {
-            
+
             isPlaying = true;
             document.getElementById('startAudioButton').innerHTML = '🎵 AI VOICE ACTIVE';
             document.getElementById('startAudioButton').classList.add('playing');
@@ -536,7 +536,7 @@
 
             // Start with first phrase immediately - user already clicked button
             currentPhraseIndex = 0;
-            
+
             // No delay needed since user just interacted
             playPhraseAtIndex(currentPhraseIndex);
         }
@@ -639,22 +639,21 @@
         }
 
     function playPreRecordedAudio(text) {
-            
-            
+
             // Find the corresponding audio file
             let audioFile = null;
-            
+
             if (audioManifest) {
                 // Use manifest to find the exact file
                 const phraseData = audioManifest.phrases.find(p => p.text === text);
                 if (phraseData) {
                     audioFile = phraseData.file;
-                    
+
                 } else {
-                    
+
                 }
             }
-            
+
             // Fallback: use phrase index to construct filename
             if (!audioFile) {
                 const phraseIndex = voicePhrases.indexOf(text);
@@ -704,7 +703,7 @@
 
                 currentAudio.onerror = (error) => {
                     console.error('❌ Pre-recorded audio error:', error);
-                    
+
                     // Continue to next phrase
                     if (isPlaying) {
                         setTimeout(() => {
@@ -1167,7 +1166,7 @@
         window.addEventListener('load', () => {
             createMatrix();
             createNeuralNetwork();
-            
+
             // Load audio manifest for pre-recorded MP3 files
             loadAudioManifest();
 
