@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Test</title>
+</head>
+<body>
+    <h1>Audio Test</h1>
+    <p>Testing individual MP3 files:</p>
+    
+    <button onclick="playFile(0)">Play Phrase 0</button>
+    <button onclick="playFile(1)">Play Phrase 1</button>
+    <button onclick="playFile(2)">Play Phrase 2</button>
+    <button onclick="playFile(3)">Play Phrase 3</button>
+    <button onclick="testSequential()">Test Sequential Playback</button>
+    
+    <div id="log"></div>
+    
+    <script>
+        let currentAudio = null;
+        let currentIndex = 0;
+        let isSequential = false;
+        
+        function log(message) {
+            document.getElementById('log').innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        function playFile(index) {
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+            
+            const filename = `audio/phrase_${index.toString().padStart(2, '0')}*`;
+            log(`Playing phrase ${index}...`);
+            
+            // For testing, we'll use the actual filenames
+            const files = [
+                'audio/phrase_00_welcome_to_a_i_zombo.mp3',
+                'audio/phrase_01_you_can_do_anything_at_a_i_zom.mp3',
+                'audio/phrase_02_anything_at_all_without_limita.mp3',
+                'audio/phrase_03_the_only_constraint_is_your_ar.mp3'
+            ];
+            
+            currentAudio = new Audio(files[index]);
+            currentAudio.volume = 1.0;
+            
+            currentAudio.onloadstart = () => log(`Loading ${files[index]}...`);
+            currentAudio.oncanplaythrough = () => log('Audio ready to play');
+            currentAudio.onplay = () => log('Audio started playing');
+            currentAudio.onended = () => {
+                log('Audio ended');
+                if (isSequential) {
+                    currentIndex++;
+                    if (currentIndex < 4) {
+                        setTimeout(() => playFile(currentIndex), 1000);
+                    } else {
+                        isSequential = false;
+                        log('Sequential test complete');
+                    }
+                }
+            };
+            currentAudio.onerror = (e) => log('Audio error: ' + e);
+            
+            currentAudio.play().then(() => {
+                log('Play() succeeded');
+            }).catch(error => {
+                log('Play() failed: ' + error);
+            });
+        }
+        
+        function testSequential() {
+            isSequential = true;
+            currentIndex = 0;
+            log('Starting sequential test...');
+            playFile(0);
+        }
+    </script>
+</body>
+</html>

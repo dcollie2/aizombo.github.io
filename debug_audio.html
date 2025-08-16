@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Audio Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        button { padding: 10px; margin: 5px; }
+        #log { background: #f0f0f0; padding: 10px; margin-top: 20px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Simple Audio Test for AI Zombo</h1>
+    
+    <button onclick="testSingleAudio()">🔊 Test Single Audio File</button>
+    <button onclick="testSequence()">🎵 Test Audio Sequence</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <div id="log"></div>
+    
+    <script>
+        let currentAudio = null;
+        let logElement = document.getElementById('log');
+        
+        function log(message) {
+            console.log(message);
+            logElement.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function clearLog() {
+            logElement.textContent = '';
+        }
+        
+        function testSingleAudio() {
+            log('=== Testing Single Audio File ===');
+            
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            
+            const audioFile = 'audio/phrase_00_welcome_to_a_i_zombo.mp3';
+            log('Creating Audio object for: ' + audioFile);
+            
+            currentAudio = new Audio(audioFile);
+            currentAudio.volume = 1.0;
+            
+            // Event listeners
+            currentAudio.addEventListener('loadstart', () => log('✓ loadstart'));
+            currentAudio.addEventListener('loadedmetadata', () => log('✓ loadedmetadata (duration: ' + currentAudio.duration + 's)'));
+            currentAudio.addEventListener('canplay', () => log('✓ canplay'));
+            currentAudio.addEventListener('canplaythrough', () => log('✓ canplaythrough'));
+            currentAudio.addEventListener('play', () => log('✓ PLAY event - audio started'));
+            currentAudio.addEventListener('playing', () => log('✓ PLAYING event - audio is playing'));
+            currentAudio.addEventListener('timeupdate', () => {
+                if (currentAudio.currentTime > 0) {
+                    log('⏰ Playing: ' + currentAudio.currentTime.toFixed(1) + 's / ' + currentAudio.duration.toFixed(1) + 's');
+                }
+            });
+            currentAudio.addEventListener('pause', () => log('⏸️ PAUSED'));
+            currentAudio.addEventListener('ended', () => log('🏁 ENDED - Audio finished!'));
+            currentAudio.addEventListener('error', (e) => log('💥 ERROR: ' + e.message));
+            
+            // Try to play
+            currentAudio.play().then(() => {
+                log('🎵 play() promise resolved - SUCCESS!');
+            }).catch(error => {
+                log('❌ play() promise rejected: ' + error.name + ' - ' + error.message);
+            });
+        }
+        
+        let sequenceIndex = 0;
+        let sequenceFiles = [
+            'audio/phrase_00_welcome_to_a_i_zombo.mp3',
+            'audio/phrase_01_you_can_do_anything_at_a_i_zom.mp3',
+            'audio/phrase_02_anything_at_all_without_limita.mp3'
+        ];
+        
+        function testSequence() {
+            log('=== Testing Audio Sequence ===');
+            sequenceIndex = 0;
+            playNextInSequence();
+        }
+        
+        function playNextInSequence() {
+            if (sequenceIndex >= sequenceFiles.length) {
+                log('🎉 Sequence complete!');
+                return;
+            }
+            
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            
+            const audioFile = sequenceFiles[sequenceIndex];
+            log('Playing sequence item ' + (sequenceIndex + 1) + ': ' + audioFile);
+            
+            currentAudio = new Audio(audioFile);
+            currentAudio.volume = 1.0;
+            
+            currentAudio.addEventListener('ended', () => {
+                log('🏁 Sequence item ' + (sequenceIndex + 1) + ' finished');
+                sequenceIndex++;
+                setTimeout(() => {
+                    playNextInSequence();
+                }, 1000); // 1 second pause
+            });
+            
+            currentAudio.addEventListener('error', (e) => {
+                log('💥 Sequence ERROR: ' + e.message);
+                sequenceIndex++;
+                setTimeout(() => {
+                    playNextInSequence();
+                }, 1000);
+            });
+            
+            currentAudio.play().then(() => {
+                log('✓ Sequence item playing');
+            }).catch(error => {
+                log('❌ Sequence play failed: ' + error.message);
+                sequenceIndex++;
+                setTimeout(() => {
+                    playNextInSequence();
+                }, 1000);
+            });
+        }
+    </script>
+</body>
+</html>
