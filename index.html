@@ -217,6 +217,33 @@
             animation: disclaimerShimmer 3s infinite;
         }
 
+        .audio-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.5);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            animation: buttonPulse 2s infinite;
+            display: none;
+            z-index: 1001;
+        }
+
+        .audio-button:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.8);
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+            50% { box-shadow: 0 0 20px rgba(255,255,255,0.6); }
+        }
+
         @keyframes disclaimerShimmer {
             0%, 100% { filter: hue-rotate(0deg); opacity: 0.7; }
             50% { filter: hue-rotate(120deg); opacity: 0.9; }
@@ -254,19 +281,49 @@
         This site uses advanced machine learning algorithms to revolutionize your browsing experience through synergistic AI-powered solutions.
     </div>
 
+    <button id="audioButton" class="audio-button" onclick="forceStartAudio()">
+        🔊 Enable Audio
+    </button>
+
     <script>
         function startExperience() {
             document.getElementById('clickOverlay').style.display = 'none';
             isPlaying = true;
 
-            // Wait for voices to load before speaking
-            if (speechSynth.getVoices().length === 0) {
-                speechSynth.addEventListener('voiceschanged', function() {
+            // Force user interaction for speech synthesis
+            console.log('Starting experience, voices available:', speechSynth.getVoices().length);
+            
+            // Small delay to ensure proper user interaction context
+            setTimeout(() => {
+                if (speechSynth.getVoices().length === 0) {
+                    speechSynth.addEventListener('voiceschanged', function() {
+                        console.log('Voices loaded, starting speech');
+                        speak(voicePhrases[0]);
+                    }, { once: true });
+                } else {
+                    console.log('Starting speech immediately');
                     speak(voicePhrases[0]);
-                }, { once: true });
-            } else {
-                speak(voicePhrases[0]);
+                }
+                
+                // Show audio button after a delay if speech doesn't start
+                setTimeout(() => {
+                    if (!speechSynth.speaking) {
+                        console.log('Speech did not start, showing audio button');
+                        document.getElementById('audioButton').style.display = 'block';
+                    }
+                }, 2000);
+            }, 100);
+        }
+
+        function forceStartAudio() {
+            console.log('Forcing audio start');
+            document.getElementById('audioButton').style.display = 'none';
+            if (speechSynth.speaking) {
+                speechSynth.cancel();
             }
+            setTimeout(() => {
+                speak(voicePhrases[currentPhraseIndex]);
+            }, 100);
         }
 
         // Text-to-speech functionality
@@ -298,12 +355,15 @@
         let currentPhraseIndex = 0;
 
         function speak(text) {
+            console.log('Attempting to speak:', text);
+            
             if (!speechSynth) {
                 console.warn('Speech synthesis not supported');
                 return;
             }
 
             if (speechSynth.speaking) {
+                console.log('Cancelling previous speech');
                 speechSynth.cancel();
             }
 
@@ -314,6 +374,8 @@
 
             // Try to use a more dramatic voice if available
             const voices = speechSynth.getVoices();
+            console.log('Available voices:', voices.length, voices.map(v => v.name));
+            
             if (voices.length > 0) {
                 const preferredVoices = voices.filter(voice =>
                     voice.name.includes('Daniel') ||
@@ -324,13 +386,20 @@
 
                 if (preferredVoices.length > 0) {
                     currentUtterance.voice = preferredVoices[0];
+                    console.log('Using preferred voice:', preferredVoices[0].name);
                 } else {
                     // Fallback to first available voice
                     currentUtterance.voice = voices[0];
+                    console.log('Using fallback voice:', voices[0].name);
                 }
             }
 
+            currentUtterance.onstart = () => {
+                console.log('Speech started');
+            };
+
             currentUtterance.onend = () => {
+                console.log('Speech ended');
                 setTimeout(() => {
                     if (isPlaying) {
                         currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
@@ -340,10 +409,11 @@
             };
 
             currentUtterance.onerror = (event) => {
-                console.warn('Speech synthesis error:', event);
+                console.error('Speech synthesis error:', event);
             };
 
             try {
+                console.log('Calling speechSynth.speak()');
                 speechSynth.speak(currentUtterance);
             } catch (error) {
                 console.error('Error speaking:', error);
