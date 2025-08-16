@@ -258,7 +258,7 @@
         function startExperience() {
             document.getElementById('clickOverlay').style.display = 'none';
             isPlaying = true;
-            
+
             // Wait for voices to load before speaking
             if (speechSynth.getVoices().length === 0) {
                 speechSynth.addEventListener('voiceschanged', function() {
