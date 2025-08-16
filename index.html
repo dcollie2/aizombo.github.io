@@ -239,6 +239,54 @@
             border-color: rgba(255,255,255,0.8);
         }
 
+        .start-audio-button {
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff);
+            border: 3px solid rgba(255,255,255,0.8);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 30px;
+            animation: audioButtonPulse 2s infinite;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .start-audio-button:hover {
+            background: linear-gradient(45deg, #ff0080, #9050ff, #4090ff);
+            box-shadow: 0 0 30px rgba(255,255,255,0.6);
+            transform: scale(1.05);
+        }
+
+        .start-audio-button.playing {
+            background: linear-gradient(45deg, #00ff80, #0080ff, #8000ff);
+            animation: playingPulse 1s infinite;
+        }
+
+        @keyframes audioButtonPulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(255,255,255,0.3); 
+                filter: hue-rotate(0deg);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(255,255,255,0.6); 
+                filter: hue-rotate(90deg);
+            }
+        }
+
+        @keyframes playingPulse {
+            0%, 100% { 
+                filter: hue-rotate(0deg) brightness(1); 
+            }
+            50% { 
+                filter: hue-rotate(180deg) brightness(1.2); 
+            }
+        }
+
         @keyframes buttonPulse {
             0%, 100% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
             50% { box-shadow: 0 0 20px rgba(255,255,255,0.6); }
@@ -275,6 +323,10 @@
             <div class="loading-fill"></div>
         </div>
         <div class="status-text" id="statusText">Initializing large language model...</div>
+        
+        <button id="startAudioButton" class="start-audio-button" onclick="startAudio()">
+            🔊 ACTIVATE AI VOICE
+        </button>
     </div>
 
     <div class="disclaimer">
@@ -288,23 +340,16 @@
     <script>
         function startExperience() {
             document.getElementById('clickOverlay').style.display = 'none';
-            isPlaying = true;
+        }
 
-            // Force user interaction for speech synthesis
-            console.log('Starting experience, voices available:', speechSynth.getVoices().length);
+        function startAudio() {
+            console.log('Starting AI voice');
+            isPlaying = true;
+            document.getElementById('startAudioButton').innerHTML = '🎵 AI VOICE ACTIVE';
+            document.getElementById('startAudioButton').classList.add('playing');
             
-            // Small delay to ensure proper user interaction context
-            setTimeout(() => {
-                if (speechSynth.getVoices().length === 0) {
-                    speechSynth.addEventListener('voiceschanged', function() {
-                        console.log('Voices loaded, starting speech');
-                        speak(voicePhrases[0]);
-                    }, { once: true });
-                } else {
-                    console.log('Starting speech immediately');
-                    speak(voicePhrases[0]);
-                }
-            }, 100);
+            // Start speaking immediately
+            speak(voicePhrases[0]);
         }
 
         function forceStartAudio() {
@@ -366,7 +411,7 @@
 
             // Try to use a more dramatic voice if available
             const voices = speechSynth.getVoices();
-            console.log('Available voices:', voices.length, voices.map(v => v.name));
+            console.log('Available voices:', voices.length);
             
             if (voices.length > 0) {
                 const preferredVoices = voices.filter(voice =>
@@ -407,17 +452,8 @@
             try {
                 console.log('Calling speechSynth.speak()');
                 speechSynth.speak(currentUtterance);
-                
-                // Check if speech actually started after a short delay
-                setTimeout(() => {
-                    if (!speechSynth.speaking) {
-                        console.log('Speech was blocked, will show audio button');
-                        document.getElementById('audioButton').style.display = 'block';
-                    }
-                }, 500);
             } catch (error) {
                 console.error('Error speaking:', error);
-                document.getElementById('audioButton').style.display = 'block';
             }
         }
 
