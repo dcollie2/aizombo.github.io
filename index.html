@@ -518,7 +518,7 @@
         }
 
         async function startAudio() {
-            console.log('Starting AI voice with Google TTS');
+            console.log('Starting AI voice with Web Speech API');
             isPlaying = true;
             document.getElementById('startAudioButton').innerHTML = '🎵 AI VOICE ACTIVE';
             document.getElementById('startAudioButton').classList.add('playing');
@@ -536,20 +536,30 @@
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
             }
+            
+            // Cancel any existing speech synthesis
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
 
-            // Start with first phrase using Google TTS
-            console.log('Starting Google TTS with first phrase');
+            // Start with first phrase using Web Speech API
+            console.log('Starting Web Speech API with first phrase');
             currentPhraseIndex = 0;
             speak(voicePhrases[currentPhraseIndex]);
         }
 
         function forceStartAudio() {
-            console.log('Forcing Google TTS audio start');
+            console.log('Forcing Web Speech API audio start');
             document.getElementById('audioButton').style.display = 'none';
 
             if (currentAudio && !currentAudio.ended) {
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
+            }
+            
+            // Cancel any existing speech synthesis
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
             }
 
             audioQueue = [];
@@ -592,8 +602,9 @@
         let currentPhraseIndex = 0;
 
         function speak(text) {
-            console.log('Attempting Google TTS for:', text);
+            console.log('Starting speech synthesis for:', text);
 
+            // Clear any existing audio
             if (currentAudio && !currentAudio.ended) {
                 console.log('Stopping current audio');
                 currentAudio.pause();
@@ -611,143 +622,36 @@
             if (audioQueue.length === 0) return;
 
             const text = audioQueue[0];
-            console.log('Processing Google TTS for:', text);
+            console.log('Processing speech for:', text);
 
-            // Google Translate TTS endpoint with British English voice - HTTPS for GitHub Pages
-            const encodedText = encodeURIComponent(text);
-            // Use British English (en-GB) with slower speed for pompous delivery
-            // Add random cache buster to avoid caching issues
-            const cacheBuster = Math.floor(Math.random() * 10000);
-            const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en-GB&client=tw-ob&ttsspeed=0.6&total=1&idx=0&textlen=${text.length}&cache=${cacheBuster}`;
-
-            console.log('Google TTS URL:', ttsUrl);
-
-            currentAudio = new Audio(ttsUrl);
-            currentAudio.volume = 1.0;
-            currentAudio.playbackRate = 0.85; // Slightly slower for more dramatic effect
-            currentAudio.crossOrigin = "anonymous"; // Try to handle CORS
-
-            currentAudio.onloadstart = () => {
-                console.log('Google TTS audio loading...');
-            };
-
-            currentAudio.oncanplaythrough = () => {
-                console.log('Google TTS audio ready to play');
-                currentAudio.play().then(() => {
-                    console.log('SUCCESS: Google TTS audio playing!');
-                }).catch(error => {
-                    console.error('Google TTS playback failed:', error);
-                    // Immediate fallback to Web Speech
-                    if ('speechSynthesis' in window) {
-                        console.log('Immediate fallback to Web Speech API...');
-                        fallbackToWebSpeech(text);
-                    } else {
-                        // Fallback to next in queue
-                        audioQueue.shift();
-                        setTimeout(processAudioQueue, 500);
-                    }
-                });
-            };
-
-            // Set up timeout for Google TTS loading
-            const loadTimeout = setTimeout(() => {
-                console.log('Google TTS load timeout - falling back to Web Speech');
-                if (currentAudio && currentAudio.readyState < 2) {
-                    currentAudio.pause();
-                    currentAudio.src = '';
-                    // Remove from queue and try Web Speech
-                    audioQueue.shift();
-                    if ('speechSynthesis' in window) {
-                        fallbackToWebSpeech(text);
-                    } else {
-                        // Move to next phrase
-                        if (isPlaying) {
-                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
-                            speak(voicePhrases[currentPhraseIndex]);
-                        }
-                    }
-                }
-            }, 8000); // 8 second timeout
-
-            currentAudio.oncanplaythrough = () => {
-                clearTimeout(loadTimeout);
-                console.log('Google TTS audio ready to play');
-                currentAudio.play().then(() => {
-                    console.log('SUCCESS: Google TTS audio playing!');
-                }).catch(error => {
-                    console.error('Google TTS playback failed:', error);
-                    // Immediate fallback to Web Speech
-                    if ('speechSynthesis' in window) {
-                        console.log('Immediate fallback to Web Speech API...');
-                        fallbackToWebSpeech(text);
-                    } else {
-                        // Fallback to next in queue
-                        audioQueue.shift();
-                        setTimeout(processAudioQueue, 500);
-                    }
-                });
-            };
-
-            currentAudio.onended = () => {
-                clearTimeout(loadTimeout);
-                console.log('Google TTS audio ended');
-                audioQueue.shift(); // Remove completed audio
-
+            // Use Web Speech API as primary method (Google TTS is blocked)
+            if ('speechSynthesis' in window) {
+                console.log('Using Web Speech API...');
+                useWebSpeech(text);
+            } else {
+                console.log('No speech synthesis available');
+                // Skip to next phrase
+                audioQueue.shift();
                 if (isPlaying) {
                     setTimeout(() => {
-                        if (audioQueue.length === 0) {
-                            // Add next phrase to queue
-                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
-                            speak(voicePhrases[currentPhraseIndex]);
-                        } else {
-                            processAudioQueue();
-                        }
-                    }, Math.random() * 2000 + 1000);
+                        currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                        speak(voicePhrases[currentPhraseIndex]);
+                    }, 2000);
                 }
-            };
-
-            currentAudio.onerror = (error) => {
-                clearTimeout(loadTimeout);
-                console.error('Google TTS audio error:', error);
-                audioQueue.shift(); // Remove failed audio
-                
-                // Try Web Speech API fallback
-                if ('speechSynthesis' in window) {
-                    console.log('Falling back to Web Speech API for:', text);
-                    try {
-                        fallbackToWebSpeech(text);
-                    } catch (fallbackError) {
-                        console.error('Web Speech fallback also failed:', fallbackError);
-                        // Continue to next phrase if fallback fails
-                        if (isPlaying) {
-                            setTimeout(() => {
-                                currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
-                                speak(voicePhrases[currentPhraseIndex]);
-                            }, 1000);
-                        }
-                    }
-                } else {
-                    console.log('No speech synthesis available, continuing...');
-                    setTimeout(() => {
-                        if (audioQueue.length > 0) {
-                            processAudioQueue();
-                        } else if (isPlaying) {
-                            // Try next phrase
-                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
-                            speak(voicePhrases[currentPhraseIndex]);
-                        }
-                    }, 1000);
-                }
-            };
-
-            // Load the audio
-            currentAudio.load();
+            }
         }
 
-        // Web Speech API fallback for GitHub Pages
-        function fallbackToWebSpeech(text) {
+        // Primary Web Speech API implementation
+        function useWebSpeech(text) {
             if (!('speechSynthesis' in window)) {
                 console.log('Web Speech API not available');
+                audioQueue.shift();
+                if (isPlaying) {
+                    setTimeout(() => {
+                        currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                        speak(voicePhrases[currentPhraseIndex]);
+                    }, 2000);
+                }
                 return;
             }
 
@@ -756,34 +660,86 @@
                 const voices = speechSynthesis.getVoices();
                 console.log('Available voices:', voices.length);
 
-                const utterance = new SpeechSynthesisUtterance(text);
-
-                // Try to find a British English voice
-                const britishVoice = voices.find(voice =>
-                    voice.lang.includes('en-GB') ||
-                    voice.name.toLowerCase().includes('british') ||
-                    voice.name.toLowerCase().includes('uk')
-                );
-
-                if (britishVoice) {
-                    utterance.voice = britishVoice;
-                    console.log('Using British voice:', britishVoice.name);
-                } else {
-                    // Fallback to any English voice
-                    const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
-                    if (englishVoice) {
-                        utterance.voice = englishVoice;
-                        console.log('Using English voice:', englishVoice.name);
-                    }
+                if (voices.length === 0) {
+                    console.log('No voices available yet, retrying...');
+                    setTimeout(speakWithVoice, 100);
+                    return;
                 }
 
-                utterance.rate = 0.7; // Slower for pompous delivery
-                utterance.pitch = 0.9; // Slightly lower pitch
-                utterance.volume = 1.0;
+                const utterance = new SpeechSynthesisUtterance(text);
+
+                // Try to find the best British English voice
+                let selectedVoice = null;
+
+                // Priority order for British voices
+                const britishVoiceNames = [
+                    'Daniel (English (United Kingdom))',
+                    'Google UK English Male',
+                    'Google UK English Female',
+                    'Microsoft David - English (United Kingdom)',
+                    'Microsoft Hazel - English (United Kingdom)',
+                    'Alex (English (United Kingdom))'
+                ];
+
+                // Try specific British voice names first
+                for (const voiceName of britishVoiceNames) {
+                    selectedVoice = voices.find(voice => 
+                        voice.name.includes(voiceName) || 
+                        voice.name.toLowerCase().includes(voiceName.toLowerCase())
+                    );
+                    if (selectedVoice) break;
+                }
+
+                // If no specific British voice, try by language code and name patterns
+                if (!selectedVoice) {
+                    selectedVoice = voices.find(voice =>
+                        voice.lang.includes('en-GB') ||
+                        voice.name.toLowerCase().includes('british') ||
+                        voice.name.toLowerCase().includes('uk') ||
+                        voice.name.toLowerCase().includes('daniel') ||
+                        voice.name.toLowerCase().includes('david')
+                    );
+                }
+
+                // Fallback to any English voice with a male sound (for pompous effect)
+                if (!selectedVoice) {
+                    selectedVoice = voices.find(voice => 
+                        voice.lang.startsWith('en') && (
+                            voice.name.toLowerCase().includes('male') ||
+                            voice.name.toLowerCase().includes('david') ||
+                            voice.name.toLowerCase().includes('daniel') ||
+                            voice.name.toLowerCase().includes('alex')
+                        )
+                    );
+                }
+
+                // Final fallback to any English voice
+                if (!selectedVoice) {
+                    selectedVoice = voices.find(voice => voice.lang.startsWith('en'));
+                }
+
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                    console.log('Using voice:', selectedVoice.name, '(' + selectedVoice.lang + ')');
+                } else {
+                    console.log('No English voice found, using default');
+                }
+
+                // Configure for pompous British delivery
+                utterance.rate = 0.65; // Slower for more dramatic effect
+                utterance.pitch = 0.85; // Slightly lower pitch for authority
+                utterance.volume = 1.0; // Full volume
+
+                utterance.onstart = () => {
+                    console.log('✅ Web Speech API speaking:', text);
+                };
 
                 utterance.onend = () => {
                     console.log('Web Speech utterance ended');
+                    audioQueue.shift(); // Remove completed text
+                    
                     if (isPlaying) {
+                        // Add some dramatic pause between phrases
                         setTimeout(() => {
                             if (audioQueue.length === 0) {
                                 // Add next phrase to queue
@@ -792,12 +748,14 @@
                             } else {
                                 processAudioQueue();
                             }
-                        }, Math.random() * 2000 + 1000);
+                        }, Math.random() * 2000 + 1500); // 1.5-3.5 second pause
                     }
                 };
 
                 utterance.onerror = (error) => {
                     console.error('Web Speech error:', error);
+                    audioQueue.shift(); // Remove failed text
+                    
                     if (isPlaying) {
                         setTimeout(() => {
                             currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
@@ -806,8 +764,9 @@
                     }
                 };
 
+                // Cancel any existing speech and speak
+                speechSynthesis.cancel();
                 speechSynthesis.speak(utterance);
-                console.log('✅ Web Speech API fallback speaking:', text);
             }
 
             // Check if voices are already loaded
@@ -815,6 +774,7 @@
                 speakWithVoice();
             } else {
                 // Wait for voices to load
+                console.log('Waiting for voices to load...');
                 speechSynthesis.addEventListener('voiceschanged', speakWithVoice, { once: true });
                 // Fallback timeout in case voiceschanged never fires
                 setTimeout(speakWithVoice, 1000);
