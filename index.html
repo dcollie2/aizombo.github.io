@@ -499,7 +499,7 @@
             🔊 ACTIVATE AI VOICE
         </button>
         
-        <button id="backgroundMusicButton" class="start-audio-button" onclick="toggleBackgroundMusic()" style="margin-top: 15px; padding: 10px 20px; font-size: 1em;">
+        <button id="backgroundMusicButton" class="start-audio-button" onclick="toggleBackgroundMusic()" style="margin-top: 15px; padding: 10px 20px; font-size: 1em; display: none;">
             � COCKTAIL JAZZ
         </button>
     </div>
@@ -956,8 +956,6 @@
                     const success = await createBackgroundMusic();
                     if (success) {
                         backgroundMusicEnabled = true;
-                        document.getElementById('backgroundMusicButton').innerHTML = '🔇 JAZZ ON';
-                        document.getElementById('backgroundMusicButton').classList.add('playing');
                         console.log('✅ Background jazz started successfully');
                     } else {
                         console.log('❌ Failed to create background music');
@@ -987,8 +985,6 @@
                         await backgroundMusic.audio.play();
                         backgroundMusic.isPlaying = true;
                         backgroundMusicEnabled = true;
-                        document.getElementById('backgroundMusicButton').innerHTML = '🔇 JAZZ ON';
-                        document.getElementById('backgroundMusicButton').classList.add('playing');
                         console.log('🎷 Background jazz resumed');
                     } catch (error) {
                         console.error('❌ Error resuming background jazz:', error);
