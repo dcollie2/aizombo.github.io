@@ -304,14 +304,6 @@
                     console.log('Starting speech immediately');
                     speak(voicePhrases[0]);
                 }
-                
-                // Show audio button after a delay if speech doesn't start
-                setTimeout(() => {
-                    if (!speechSynth.speaking) {
-                        console.log('Speech did not start, showing audio button');
-                        document.getElementById('audioButton').style.display = 'block';
-                    }
-                }, 2000);
             }, 100);
         }
 
@@ -415,8 +407,17 @@
             try {
                 console.log('Calling speechSynth.speak()');
                 speechSynth.speak(currentUtterance);
+                
+                // Check if speech actually started after a short delay
+                setTimeout(() => {
+                    if (!speechSynth.speaking) {
+                        console.log('Speech was blocked, will show audio button');
+                        document.getElementById('audioButton').style.display = 'block';
+                    }
+                }, 500);
             } catch (error) {
                 console.error('Error speaking:', error);
+                document.getElementById('audioButton').style.display = 'block';
             }
         }
 
