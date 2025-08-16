@@ -498,7 +498,7 @@
         <button id="startAudioButton" class="start-audio-button" onclick="startAudio()" onmousedown="this.style.background='linear-gradient(45deg, #ff0080, #9050ff, #4090ff)'" onmouseup="this.style.background='linear-gradient(45deg, #ff006e, #8338ec, #3a86ff)'">
             🔊 ACTIVATE AI VOICE
         </button>
-        
+
         <button id="backgroundMusicButton" class="start-audio-button" onclick="toggleBackgroundMusic()" style="margin-top: 15px; padding: 10px 20px; font-size: 1em; display: none;">
             � COCKTAIL JAZZ
         </button>
@@ -659,7 +659,7 @@
                 console.error('Google TTS audio error:', error);
                 audioQueue.shift(); // Remove failed audio
                 
-                // Try Web Speech API fallback for GitHub Pages
+                // Try Web Speech API fallback
                 if ('speechSynthesis' in window) {
                     console.log('Falling back to Web Speech API...');
                     fallbackToWebSpeech(text);
@@ -692,16 +692,16 @@
             function speakWithVoice() {
                 const voices = speechSynthesis.getVoices();
                 console.log('Available voices:', voices.length);
-                
+
                 const utterance = new SpeechSynthesisUtterance(text);
-                
+
                 // Try to find a British English voice
-                const britishVoice = voices.find(voice => 
-                    voice.lang.includes('en-GB') || 
+                const britishVoice = voices.find(voice =>
+                    voice.lang.includes('en-GB') ||
                     voice.name.toLowerCase().includes('british') ||
                     voice.name.toLowerCase().includes('uk')
                 );
-                
+
                 if (britishVoice) {
                     utterance.voice = britishVoice;
                     console.log('Using British voice:', britishVoice.name);
@@ -713,11 +713,11 @@
                         console.log('Using English voice:', englishVoice.name);
                     }
                 }
-                
+
                 utterance.rate = 0.7; // Slower for pompous delivery
                 utterance.pitch = 0.9; // Slightly lower pitch
                 utterance.volume = 1.0;
-                
+
                 utterance.onend = () => {
                     console.log('Web Speech utterance ended');
                     if (isPlaying) {
@@ -732,7 +732,7 @@
                         }, Math.random() * 2000 + 1000);
                     }
                 };
-                
+
                 utterance.onerror = (error) => {
                     console.error('Web Speech error:', error);
                     if (isPlaying) {
@@ -742,7 +742,7 @@
                         }, 1000);
                     }
                 };
-                
+
                 speechSynthesis.speak(utterance);
                 console.log('✅ Web Speech API fallback speaking:', text);
             }
@@ -761,7 +761,7 @@
         // Background music functionality - Jazz Cocktail Lounge
         async function createBackgroundMusic() {
             console.log('=== Creating Background Jazz Music ===');
-            
+
             // Try the Fesliyan Studios track first, then fall back to generated jazz
             return await loadFesliyanJazzTrack();
         }
@@ -769,24 +769,24 @@
                 // Load the specific Fesliyan Studios jazz track
         async function loadFesliyanJazzTrack() {
             console.log('Loading local Fesliyan Studios jazz track...');
-            
+
             try {
                 // Local file path for "Information Regime" from Fesliyan Studios
                 const jazzUrl = './information-regime.mp3';
-                
+
                 const audio = new Audio();
                 audio.loop = true;
                 audio.volume = 0.4; // Slightly lower volume for this particular track
-                
+
                 console.log('Loading local jazz track:', jazzUrl);
-                
+
                 // Set up event handlers before setting src
                 return new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
                         console.log('Local track load timeout, falling back...');
                         reject(new Error('Load timeout'));
                     }, 10000); // 10 second timeout for local file
-                    
+
                     audio.onloadstart = () => {
                         console.log('Local jazz track loading...');
                     };
@@ -796,12 +796,12 @@
                         console.log('Local jazz track ready to play');
                         try {
                             await audio.play();
-                            
+
                             backgroundMusic = {
                                 audio: audio,
                                 isPlaying: true
                             };
-                            
+
                             console.log('✅ Local jazz track playing successfully!');
                             resolve(true);
                         } catch (playError) {
@@ -823,7 +823,7 @@
                     audio.src = jazzUrl;
                     audio.load();
                 });
-                
+
             } catch (error) {
                 console.error('❌ Local jazz loading failed:', error);
                 // Fallback to generated jazz
@@ -834,24 +834,24 @@
         // Advanced jazz-style ambient sound generator
         async function createJazzAmbientSound() {
             console.log('Creating sophisticated jazz ambient sound...');
-            
+
             try {
                 // Create a much more complex jazz-style ambient track
                 const sampleRate = 44100; // High quality sample rate
                 const duration = 8; // 8 seconds for smooth loop
                 const samples = sampleRate * duration;
-                
+
                 // Generate PCM data
                 const buffer = new ArrayBuffer(44 + samples * 2);
                 const view = new DataView(buffer);
-                
+
                 // WAV header
                 const writeString = (offset, string) => {
                     for (let i = 0; i < string.length; i++) {
                         view.setUint8(offset + i, string.charCodeAt(i));
                     }
                 };
-                
+
                 writeString(0, 'RIFF');
                 view.setUint32(4, 36 + samples * 2, true);
                 writeString(8, 'WAVE');
@@ -865,15 +865,15 @@
                 view.setUint16(34, 16, true);
                 writeString(36, 'data');
                 view.setUint32(40, samples * 2, true);
-                
+
                 // Generate sophisticated jazz-style ambient sound
                 for (let i = 0; i < samples; i++) {
                     const t = i / sampleRate;
-                    
+
                     // Jazz chord progression (Cmaj7 -> Am7 -> Dm7 -> G7)
                     const chordProgress = Math.floor((t * 0.25) % 4); // 4-second chord changes
                     let bassNote, chord1, chord2, chord3;
-                    
+
                     switch (chordProgress) {
                         case 0: // Cmaj7
                             bassNote = 130.81; // C3
@@ -900,53 +900,53 @@
                             chord3 = 349.23;   // F4
                             break;
                     }
-                    
+
                     // Create jazz-style walking bass line with gentle movement
                     const bassWalk = Math.sin(2 * Math.PI * t * 0.5) * 0.1; // Very slow walking
                     const bass = Math.sin(2 * Math.PI * (bassNote + bassWalk) * t) * 0.25;
-                    
+
                     // Soft jazz chord voicing with slight detuning for warmth
                     const detune1 = 1 + Math.sin(2 * Math.PI * t * 0.13) * 0.002;
                     const detune2 = 1 + Math.sin(2 * Math.PI * t * 0.17) * 0.002;
                     const detune3 = 1 + Math.sin(2 * Math.PI * t * 0.19) * 0.002;
-                    
+
                     const harmony1 = Math.sin(2 * Math.PI * chord1 * detune1 * t) * 0.12;
                     const harmony2 = Math.sin(2 * Math.PI * chord2 * detune2 * t) * 0.10;
                     const harmony3 = Math.sin(2 * Math.PI * chord3 * detune3 * t) * 0.08;
-                    
+
                     // Add soft "brush" percussion texture
                     const brushNoise = (Math.random() - 0.5) * 0.02 * Math.sin(2 * Math.PI * t * 2); // Subtle rhythm
-                    
+
                     // Gentle jazz-style amplitude modulation (breathing effect)
                     const breathe = Math.sin(2 * Math.PI * 0.1 * t) * 0.15 + 0.85;
-                    
+
                     // High-frequency shimmer (like soft cymbals)
                     const shimmer = Math.sin(2 * Math.PI * 880 * t) * 0.03 * Math.sin(2 * Math.PI * 0.3 * t);
-                    
+
                     // Combine all elements
                     const sample = (bass + harmony1 + harmony2 + harmony3 + brushNoise + shimmer) * breathe * 0.3;
-                    
+
                     view.setInt16(44 + i * 2, Math.max(-32767, Math.min(32767, sample * 32767)), true);
                 }
-                
+
                 // Create blob and audio
                 const blob = new Blob([buffer], { type: 'audio/wav' });
                 const audioUrl = URL.createObjectURL(blob);
-                
+
                 const audio = new Audio(audioUrl);
                 audio.loop = true;
                 audio.volume = 0.5; // Increased volume for more prominent background music
-                
+
                 await audio.play();
-                
+
                 backgroundMusic = {
                     audio: audio,
                     isPlaying: true
                 };
-                
+
                 console.log('✅ Sophisticated jazz ambient music playing!');
                 return true;
-                
+
             } catch (error) {
                 console.error('❌ Jazz ambient generation failed:', error);
                 return await fallbackToGeneratedAmbient();
@@ -956,25 +956,25 @@
         // Fallback ambient sound generator
         async function fallbackToGeneratedAmbient() {
             console.log('Using fallback ambient sound...');
-            
+
             try {
                 // Create a simple sine wave data URL as fallback
                 const sampleRate = 22050;
-                const duration = 4; 
+                const duration = 4;
                 const baseFreq = 85; // Lower, more ambient frequency
                 const samples = sampleRate * duration;
-                
+
                 // Generate PCM data
                 const buffer = new ArrayBuffer(44 + samples * 2);
                 const view = new DataView(buffer);
-                
+
                 // WAV header
                 const writeString = (offset, string) => {
                     for (let i = 0; i < string.length; i++) {
                         view.setUint8(offset + i, string.charCodeAt(i));
                     }
                 };
-                
+
                 writeString(0, 'RIFF');
                 view.setUint32(4, 36 + samples * 2, true);
                 writeString(8, 'WAVE');
@@ -988,55 +988,55 @@
                 view.setUint16(34, 16, true);
                 writeString(36, 'data');
                 view.setUint32(40, samples * 2, true);
-                
+
                 // Generate ambient pad sound
                 for (let i = 0; i < samples; i++) {
                     const t = i / sampleRate;
-                    
+
                     // Create a warm ambient pad with gentle modulation
                     const wave1 = Math.sin(2 * Math.PI * baseFreq * t) * 0.2;
                     const wave2 = Math.sin(2 * Math.PI * (baseFreq * 1.2) * t) * 0.15;
                     const wave3 = Math.sin(2 * Math.PI * (baseFreq * 1.5) * t) * 0.1;
-                    
+
                     // Very slow modulation for breathing effect
                     const modulation = Math.sin(2 * Math.PI * 0.05 * t) * 0.1 + 0.9;
-                    
+
                     const sample = (wave1 + wave2 + wave3) * modulation * 0.3;
-                    
+
                     view.setInt16(44 + i * 2, Math.max(-32767, Math.min(32767, sample * 32767)), true);
                 }
-                
+
                 // Create blob and audio
                 const blob = new Blob([buffer], { type: 'audio/wav' });
                 const audioUrl = URL.createObjectURL(blob);
-                
+
                 const audio = new Audio(audioUrl);
                 audio.loop = true;
                 audio.volume = 0.25;
-                
+
                 await audio.play();
-                
+
                 backgroundMusic = {
                     audio: audio,
                     isPlaying: true
                 };
-                
+
                 console.log('✅ Fallback ambient music playing');
                 return true;
-                
+
             } catch (error) {
                 console.error('❌ Fallback ambient failed:', error);
                 return false;
             }
         }
-        
+
         // Matrix-like background effect
-        
+
         async function toggleBackgroundMusic() {
             console.log('=== Toggle Background Music ===');
             console.log('Current backgroundMusic:', backgroundMusic);
             console.log('Current backgroundMusicEnabled:', backgroundMusicEnabled);
-            
+
             if (!backgroundMusic) {
                 console.log('Creating new background music...');
                 try {
@@ -1052,7 +1052,7 @@
                 }
                 return;
             }
-            
+
             if (backgroundMusic.isPlaying) {
                 // Stop/pause
                 if (backgroundMusic.audio) {
