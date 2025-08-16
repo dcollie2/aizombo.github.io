@@ -500,10 +500,6 @@
             🔊 ACTIVATE AI VOICE
         </button>
 
-        <button id="testSpeechButton" class="start-audio-button" onclick="testSpeech()" style="margin-top: 15px; padding: 10px 20px; font-size: 1em; background: linear-gradient(45deg, #ff4500, #ff6b35, #ff8c69);">
-            🗣️ TEST SPEECH
-        </button>
-
         <button id="backgroundMusicButton" class="start-audio-button" onclick="toggleBackgroundMusic()" style="margin-top: 15px; padding: 10px 20px; font-size: 1em; display: none;">
             🎵 COCKTAIL JAZZ
         </button>
@@ -522,46 +518,8 @@
             // This function is no longer needed but keeping for compatibility
         }
 
-        function testSpeech() {
-            console.log('=== TESTING SPEECH DIRECTLY ===');
-            
-            // Cancel any existing speech
-            if ('speechSynthesis' in window) {
-                speechSynthesis.cancel();
-            }
-            
-            setTimeout(() => {
-                const testUtterance = new SpeechSynthesisUtterance("Testing speech synthesis. Can you hear me?");
-                testUtterance.volume = 1.0;
-                testUtterance.rate = 0.8;
-                testUtterance.pitch = 1.0;
-                
-                testUtterance.onstart = () => {
-                    console.log('🔊 TEST SPEECH STARTED - YOU SHOULD HEAR AUDIO NOW!');
-                };
-                
-                testUtterance.onend = () => {
-                    console.log('✅ Test speech completed');
-                };
-                
-                testUtterance.onerror = (e) => {
-                    console.error('❌ Test speech failed:', e);
-                };
-                
-                console.log('Speaking test phrase...');
-                speechSynthesis.speak(testUtterance);
-                
-                // Chrome fix
-                setTimeout(() => {
-                    if (speechSynthesis.paused) {
-                        speechSynthesis.resume();
-                    }
-                }, 100);
-            }, 100);
-        }
-
         async function startAudio() {
-            console.log('Starting AI voice...');
+            console.log('🔊 Starting AI voice with pre-recorded audio...');
             isPlaying = true;
             document.getElementById('startAudioButton').innerHTML = '🎵 AI VOICE ACTIVE';
             document.getElementById('startAudioButton').classList.add('playing');
@@ -579,53 +537,40 @@
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
             }
-            
-            // Only cancel if speech synthesis is currently speaking
-            if ('speechSynthesis' in window && speechSynthesis.speaking) {
-                console.log('Canceling existing speech...');
-                speechSynthesis.cancel();
-            }
 
             // Start with first phrase
             console.log('Starting with first phrase');
             currentPhraseIndex = 0;
             
-            // Add small delay if we just canceled speech
-            const delay = speechSynthesis.speaking ? 200 : 0;
             setTimeout(() => {
                 speak(voicePhrases[currentPhraseIndex]);
-            }, delay);
+            }, 100);
         }
 
         function forceStartAudio() {
-            console.log('Forcing audio start with Google TTS (Web Speech fallback)');
+            console.log('🔊 Starting pre-recorded audio system...');
             document.getElementById('audioButton').style.display = 'none';
 
             if (currentAudio && !currentAudio.ended) {
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
             }
-            
-            // Only cancel if speech synthesis is currently speaking
-            if ('speechSynthesis' in window && speechSynthesis.speaking) {
-                console.log('Canceling existing speech...');
-                speechSynthesis.cancel();
-            }
 
             audioQueue = [];
             setTimeout(() => {
                 speak(voicePhrases[currentPhraseIndex]);
-            }, speechSynthesis.speaking ? 200 : 100);
+            }, 100);
         }
 
-        // Text-to-speech functionality - Google TTS
+        // Pre-recorded MP3 Audio System - Bulletproof for all hosting platforms!
         let currentAudio = null;
         let isPlaying = false;
         let audioQueue = [];
         let backgroundMusic = null;
         let backgroundMusicEnabled = false;
+        let audioManifest = null;
 
-        // Voice phrases in Zombo.com style - Enhanced for maximum pomposity
+        // Voice phrases with their corresponding MP3 files - Enhanced for maximum pomposity
         const voicePhrases = [
             "Welcome to A I Zombo",
             "You can do anything at A I Zombo",
@@ -651,8 +596,20 @@
 
         let currentPhraseIndex = 0;
 
+        // Load audio manifest on page load
+        async function loadAudioManifest() {
+            try {
+                const response = await fetch('./audio/manifest.json');
+                audioManifest = await response.json();
+                console.log('✅ Audio manifest loaded:', audioManifest.phrases.length, 'phrases');
+            } catch (error) {
+                console.error('❌ Failed to load audio manifest:', error);
+                audioManifest = null;
+            }
+        }
+
         function speak(text) {
-            console.log('Starting speech synthesis for:', text);
+            console.log('🔊 Playing pre-recorded audio for:', text);
 
             // Clear any existing audio
             if (currentAudio && !currentAudio.ended) {
@@ -672,10 +629,119 @@
             if (audioQueue.length === 0) return;
 
             const text = audioQueue[0];
-            console.log('Processing speech for:', text);
+            console.log('Processing pre-recorded audio for:', text);
 
-            // Try Google TTS first, then fallback to Web Speech API
-            tryGoogleTTS(text);
+            // Play the pre-recorded MP3 file
+            playPreRecordedAudio(text);
+        }
+
+        function playPreRecordedAudio(text) {
+            console.log('🎵 Playing pre-recorded MP3 for:', text);
+
+            // Find the corresponding audio file
+            let audioFile = null;
+            
+            if (audioManifest) {
+                // Use manifest to find the exact file
+                const phraseData = audioManifest.phrases.find(p => p.text === text);
+                if (phraseData) {
+                    audioFile = phraseData.file;
+                    console.log('📁 Found in manifest:', audioFile);
+                } else {
+                    console.log('⚠️  Phrase not found in manifest, using index fallback');
+                }
+            }
+            
+            // Fallback: use phrase index to construct filename
+            if (!audioFile) {
+                const phraseIndex = voicePhrases.indexOf(text);
+                if (phraseIndex >= 0) {
+                    audioFile = `audio/phrase_${phraseIndex.toString().padStart(2, '0')}_${createSafeFilename(text)}.mp3`;
+                    console.log('🔢 Using index fallback:', audioFile);
+                } else {
+                    console.error('❌ Could not find audio file for:', text);
+                    // Skip to next in queue
+                    audioQueue.shift();
+                    if (isPlaying && audioQueue.length === 0) {
+                        setTimeout(() => {
+                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                            speak(voicePhrases[currentPhraseIndex]);
+                        }, 2000);
+                    }
+                    return;
+                }
+            }
+
+            // Create and configure audio element
+            currentAudio = new Audio();
+            currentAudio.volume = 1.0;
+            currentAudio.playbackRate = 0.85; // Slightly slower for more dramatic effect
+
+            currentAudio.onloadstart = () => {
+                console.log('🔄 Pre-recorded audio loading...');
+            };
+
+            currentAudio.oncanplaythrough = () => {
+                console.log('✅ Pre-recorded audio ready to play');
+                currentAudio.play().then(() => {
+                    console.log('🔊 SUCCESS: Pre-recorded audio playing!');
+                }).catch(error => {
+                    console.error('❌ Pre-recorded audio playback failed:', error);
+                    // Skip to next phrase
+                    audioQueue.shift();
+                    if (isPlaying && audioQueue.length === 0) {
+                        setTimeout(() => {
+                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                            speak(voicePhrases[currentPhraseIndex]);
+                        }, 2000);
+                    }
+                });
+            };
+
+            currentAudio.onended = () => {
+                console.log('✅ Pre-recorded audio ended');
+                audioQueue.shift(); // Remove completed audio
+
+                if (isPlaying) {
+                    setTimeout(() => {
+                        if (audioQueue.length === 0) {
+                            // Add next phrase to queue
+                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                            speak(voicePhrases[currentPhraseIndex]);
+                        } else {
+                            processAudioQueue();
+                        }
+                    }, Math.random() * 2000 + 1000); // 1-3 second pause between phrases
+                }
+            };
+
+            currentAudio.onerror = (error) => {
+                console.error('❌ Pre-recorded audio error:', error);
+                console.log('Audio file was:', audioFile);
+                audioQueue.shift(); // Remove failed audio
+                
+                // Continue to next phrase
+                if (isPlaying) {
+                    setTimeout(() => {
+                        if (audioQueue.length === 0) {
+                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                            speak(voicePhrases[currentPhraseIndex]);
+                        } else {
+                            processAudioQueue();
+                        }
+                    }, 2000);
+                }
+            };
+
+            // Set the source and load
+            currentAudio.src = audioFile;
+            currentAudio.load();
+        }
+
+        // Helper function to create safe filenames (matches the generator script)
+        function createSafeFilename(text) {
+            const safe = text.replace(/[^a-zA-Z0-9 \-_]/g, '').trim();
+            return safe.replace(/\s+/g, '_').toLowerCase().substring(0, 30);
         }
 
         function tryGoogleTTS(text) {
@@ -1332,6 +1398,9 @@
         window.addEventListener('load', () => {
             createMatrix();
             createNeuralNetwork();
+            
+            // Load audio manifest for pre-recorded MP3 files
+            loadAudioManifest();
 
             // Safari background fix
             const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
