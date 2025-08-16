@@ -537,15 +537,21 @@
                 currentAudio.currentTime = 0;
             }
             
-            // Cancel any existing speech synthesis
-            if ('speechSynthesis' in window) {
+            // Only cancel if speech synthesis is currently speaking
+            if ('speechSynthesis' in window && speechSynthesis.speaking) {
+                console.log('Canceling existing speech...');
                 speechSynthesis.cancel();
             }
 
             // Start with first phrase using Web Speech API
             console.log('Starting Web Speech API with first phrase');
             currentPhraseIndex = 0;
-            speak(voicePhrases[currentPhraseIndex]);
+            
+            // Add small delay if we just canceled speech
+            const delay = speechSynthesis.speaking ? 200 : 0;
+            setTimeout(() => {
+                speak(voicePhrases[currentPhraseIndex]);
+            }, delay);
         }
 
         function forceStartAudio() {
@@ -557,15 +563,16 @@
                 currentAudio.currentTime = 0;
             }
             
-            // Cancel any existing speech synthesis
-            if ('speechSynthesis' in window) {
+            // Only cancel if speech synthesis is currently speaking
+            if ('speechSynthesis' in window && speechSynthesis.speaking) {
+                console.log('Canceling existing speech...');
                 speechSynthesis.cancel();
             }
 
             audioQueue = [];
             setTimeout(() => {
                 speak(voicePhrases[currentPhraseIndex]);
-            }, 100);
+            }, speechSynthesis.speaking ? 200 : 100);
         }
 
         // Text-to-speech functionality - Google TTS
@@ -683,8 +690,8 @@
 
                 // Try specific British voice names first
                 for (const voiceName of britishVoiceNames) {
-                    selectedVoice = voices.find(voice => 
-                        voice.name.includes(voiceName) || 
+                    selectedVoice = voices.find(voice =>
+                        voice.name.includes(voiceName) ||
                         voice.name.toLowerCase().includes(voiceName.toLowerCase())
                     );
                     if (selectedVoice) break;
@@ -703,7 +710,7 @@
 
                 // Fallback to any English voice with a male sound (for pompous effect)
                 if (!selectedVoice) {
-                    selectedVoice = voices.find(voice => 
+                    selectedVoice = voices.find(voice =>
                         voice.lang.startsWith('en') && (
                             voice.name.toLowerCase().includes('male') ||
                             voice.name.toLowerCase().includes('david') ||
@@ -753,7 +760,27 @@
                 };
 
                 utterance.onerror = (error) => {
-                    console.error('Web Speech error:', error);
+                    console.error('Web Speech error:', error.error, 'for text:', text);
+                    
+                    // Don't retry if it was explicitly canceled
+                    if (error.error === 'canceled') {
+                        console.log('Speech was canceled, skipping to next phrase');
+                        audioQueue.shift(); // Remove failed text
+                        
+                        if (isPlaying) {
+                            setTimeout(() => {
+                                if (audioQueue.length === 0) {
+                                    currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                                    speak(voicePhrases[currentPhraseIndex]);
+                                } else {
+                                    processAudioQueue();
+                                }
+                            }, 500);
+                        }
+                        return;
+                    }
+                    
+                    // For other errors, try again with next phrase
                     audioQueue.shift(); // Remove failed text
                     
                     if (isPlaying) {
@@ -764,9 +791,17 @@
                     }
                 };
 
-                // Cancel any existing speech and speak
-                speechSynthesis.cancel();
-                speechSynthesis.speak(utterance);
+                // Only cancel if speech synthesis is currently speaking
+                if (speechSynthesis.speaking) {
+                    console.log('Canceling current speech...');
+                    speechSynthesis.cancel();
+                    // Add a small delay to ensure cancellation completes
+                    setTimeout(() => {
+                        speechSynthesis.speak(utterance);
+                    }, 100);
+                } else {
+                    speechSynthesis.speak(utterance);
+                }
             }
 
             // Check if voices are already loaded
