@@ -5,21 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to AI Zombo</title>
     <style>
+        /* CSS Reset for Safari */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        html {
+            height: 100%;
+            background: #8338ec !important;
+        }
+
         body {
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100vh;
+            min-height: 100vh;
+            background: #8338ec;
+            background: -webkit-linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607);
+            background: -moz-linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607);
+            background: -o-linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607);
             background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607);
             background-size: 400% 400%;
+            background-attachment: fixed;
             animation: psychedelicGradient 8s ease infinite;
+            -webkit-animation: psychedelicGradient 8s ease infinite;
             font-family: 'Courier New', monospace;
             color: white;
             overflow: hidden;
-            height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             position: relative;
+        }
+
+        /* Safari specific styles */
+        @supports (-webkit-appearance: none) {
+            body {
+                background: #8338ec;
+                background: -webkit-gradient(linear, left top, right bottom, 
+                    color-stop(0%, #ff006e), 
+                    color-stop(20%, #8338ec), 
+                    color-stop(40%, #3a86ff), 
+                    color-stop(60%, #06ffa5), 
+                    color-stop(80%, #ffbe0b), 
+                    color-stop(100%, #fb5607));
+                background-size: 400% 400%;
+            }
         }
 
         @keyframes psychedelicGradient {
@@ -28,30 +61,10 @@
             100% { background-position: 0% 50%; }
         }
 
-        .click-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            cursor: pointer;
-        }
-
-        .click-message {
-            text-align: center;
-            font-size: 2em;
-            color: white;
-            animation: clickPulse 2s infinite;
-        }
-
-        @keyframes clickPulse {
-            0%, 100% { opacity: 0.7; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
+        @-webkit-keyframes psychedelicGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .matrix-bg {
@@ -60,14 +73,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            opacity: 0.3;
-            z-index: -1;
+            opacity: 0.6;
+            z-index: 1;
             font-family: monospace;
             font-size: 12px;
             line-height: 14px;
             color: #ffffff;
             filter: hue-rotate(0deg);
+            -webkit-filter: hue-rotate(0deg);
             animation: colorShift 4s linear infinite;
+            -webkit-animation: colorShift 4s linear infinite;
+            pointer-events: none;
         }
 
         @keyframes colorShift {
@@ -78,11 +94,35 @@
             100% { filter: hue-rotate(360deg) brightness(1); }
         }
 
+        @-webkit-keyframes colorShift {
+            0% { 
+                -webkit-filter: hue-rotate(0deg) brightness(1); 
+                filter: hue-rotate(0deg) brightness(1); 
+            }
+            25% { 
+                -webkit-filter: hue-rotate(90deg) brightness(1.5); 
+                filter: hue-rotate(90deg) brightness(1.5); 
+            }
+            50% { 
+                -webkit-filter: hue-rotate(180deg) brightness(1); 
+                filter: hue-rotate(180deg) brightness(1); 
+            }
+            75% { 
+                -webkit-filter: hue-rotate(270deg) brightness(1.5); 
+                filter: hue-rotate(270deg) brightness(1.5); 
+            }
+            100% { 
+                -webkit-filter: hue-rotate(360deg) brightness(1); 
+                filter: hue-rotate(360deg) brightness(1); 
+            }
+        }
+
         .container {
             text-align: center;
-            z-index: 2;
+            z-index: 10;
             max-width: 800px;
             padding: 20px;
+            position: relative;
         }
 
         h1 {
@@ -90,6 +130,7 @@
             margin: 20px 0;
             text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.5);
             animation: psychedelicPulse 3s infinite, textGlow 2s infinite alternate;
+            -webkit-animation: psychedelicPulse 3s infinite, textGlow 2s infinite alternate;
         }
 
         @keyframes psychedelicPulse {
@@ -99,7 +140,39 @@
             75% { transform: scale(1.05) rotate(-1deg); filter: hue-rotate(270deg); }
         }
 
+        @-webkit-keyframes psychedelicPulse {
+            0%, 100% { 
+                -webkit-transform: scale(1) rotate(0deg); 
+                -webkit-filter: hue-rotate(0deg); 
+                transform: scale(1) rotate(0deg); 
+                filter: hue-rotate(0deg); 
+            }
+            25% { 
+                -webkit-transform: scale(1.05) rotate(1deg); 
+                -webkit-filter: hue-rotate(90deg); 
+                transform: scale(1.05) rotate(1deg); 
+                filter: hue-rotate(90deg); 
+            }
+            50% { 
+                -webkit-transform: scale(1.1) rotate(0deg); 
+                -webkit-filter: hue-rotate(180deg); 
+                transform: scale(1.1) rotate(0deg); 
+                filter: hue-rotate(180deg); 
+            }
+            75% { 
+                -webkit-transform: scale(1.05) rotate(-1deg); 
+                -webkit-filter: hue-rotate(270deg); 
+                transform: scale(1.05) rotate(-1deg); 
+                filter: hue-rotate(270deg); 
+            }
+        }
+
         @keyframes textGlow {
+            0% { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 20px rgba(255,0,255,0.8); }
+            100% { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 40px rgba(0,255,255,0.8); }
+        }
+
+        @-webkit-keyframes textGlow {
             0% { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 20px rgba(255,0,255,0.8); }
             100% { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 40px rgba(0,255,255,0.8); }
         }
@@ -110,6 +183,7 @@
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.7), 0 0 15px rgba(255,255,255,0.6);
             animation: taglineShift 4s infinite;
+            -webkit-animation: taglineShift 4s infinite;
         }
 
         @keyframes taglineShift {
@@ -117,22 +191,55 @@
             50% { filter: hue-rotate(180deg); transform: translateY(-5px); }
         }
 
+        @-webkit-keyframes taglineShift {
+            0%, 100% { 
+                -webkit-filter: hue-rotate(0deg); 
+                -webkit-transform: translateY(0px); 
+                filter: hue-rotate(0deg); 
+                transform: translateY(0px); 
+            }
+            50% { 
+                -webkit-filter: hue-rotate(180deg); 
+                -webkit-transform: translateY(-5px); 
+                filter: hue-rotate(180deg); 
+                transform: translateY(-5px); 
+            }
+        }
+
         .neural-network {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            -webkit-transform: translate(-50%, -50%);
             width: 100%;
             height: 100%;
-            opacity: 0.15;
-            z-index: -1;
+            opacity: 0.4;
+            z-index: 1;
             animation: networkRotate 20s linear infinite;
+            -webkit-animation: networkRotate 20s linear infinite;
+            pointer-events: none;
         }
 
         @keyframes networkRotate {
             0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
             50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.2); }
             100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
+        }
+
+        @-webkit-keyframes networkRotate {
+            0% { 
+                -webkit-transform: translate(-50%, -50%) rotate(0deg) scale(1); 
+                transform: translate(-50%, -50%) rotate(0deg) scale(1); 
+            }
+            50% { 
+                -webkit-transform: translate(-50%, -50%) rotate(180deg) scale(1.2); 
+                transform: translate(-50%, -50%) rotate(180deg) scale(1.2); 
+            }
+            100% { 
+                -webkit-transform: translate(-50%, -50%) rotate(360deg) scale(1); 
+                transform: translate(-50%, -50%) rotate(360deg) scale(1); 
+            }
         }
 
         .node {
@@ -142,6 +249,7 @@
             background: white;
             border-radius: 50%;
             animation: psychedelicNode 2s infinite;
+            -webkit-animation: psychedelicNode 2s infinite;
             box-shadow: 0 0 10px rgba(255,255,255,0.8);
         }
 
@@ -153,6 +261,23 @@
             }
             50% {
                 opacity: 1;
+                filter: hue-rotate(180deg);
+                transform: scale(1.5);
+            }
+        }
+
+        @-webkit-keyframes psychedelicNode {
+            0%, 100% {
+                opacity: 0.3;
+                -webkit-filter: hue-rotate(0deg);
+                -webkit-transform: scale(1);
+                filter: hue-rotate(0deg);
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                -webkit-filter: hue-rotate(180deg);
+                -webkit-transform: scale(1.5);
                 filter: hue-rotate(180deg);
                 transform: scale(1.5);
             }
@@ -251,20 +376,24 @@
             font-weight: bold;
             margin-top: 30px;
             animation: audioButtonPulse 2s infinite;
+            -webkit-animation: audioButtonPulse 2s infinite;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
             box-shadow: 0 0 20px rgba(255,255,255,0.3);
             transition: all 0.3s ease;
+            -webkit-transition: all 0.3s ease;
         }
 
         .start-audio-button:hover {
             background: linear-gradient(45deg, #ff0080, #9050ff, #4090ff);
             box-shadow: 0 0 30px rgba(255,255,255,0.6);
             transform: scale(1.05);
+            -webkit-transform: scale(1.05);
         }
 
         .start-audio-button.playing {
             background: linear-gradient(45deg, #00ff80, #0080ff, #8000ff);
             animation: playingPulse 1s infinite;
+            -webkit-animation: playingPulse 1s infinite;
         }
 
         @keyframes audioButtonPulse {
@@ -278,11 +407,35 @@
             }
         }
 
+        @-webkit-keyframes audioButtonPulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(255,255,255,0.3); 
+                -webkit-filter: hue-rotate(0deg);
+                filter: hue-rotate(0deg);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(255,255,255,0.6); 
+                -webkit-filter: hue-rotate(90deg);
+                filter: hue-rotate(90deg);
+            }
+        }
+
         @keyframes playingPulse {
             0%, 100% { 
                 filter: hue-rotate(0deg) brightness(1); 
             }
             50% { 
+                filter: hue-rotate(180deg) brightness(1.2); 
+            }
+        }
+
+        @-webkit-keyframes playingPulse {
+            0%, 100% { 
+                -webkit-filter: hue-rotate(0deg) brightness(1); 
+                filter: hue-rotate(0deg) brightness(1); 
+            }
+            50% { 
+                -webkit-filter: hue-rotate(180deg) brightness(1.2); 
                 filter: hue-rotate(180deg) brightness(1.2); 
             }
         }
@@ -304,12 +457,30 @@
     </style>
 </head>
 <body>
-    <div id="clickOverlay" class="click-overlay" onclick="startExperience()">
-        <div class="click-message">
-            Click anywhere to enter<br>
-            AI ZOMBO
-        </div>
-    </div>
+    <!-- Safari background fix -->
+    <div id="safariBackground" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #8338ec;
+        background: -webkit-gradient(linear, left top, right bottom, 
+            color-stop(0%, #ff006e), 
+            color-stop(20%, #8338ec), 
+            color-stop(40%, #3a86ff), 
+            color-stop(60%, #06ffa5), 
+            color-stop(80%, #ffbe0b), 
+            color-stop(100%, #fb5607));
+        background: -webkit-linear-gradient(45deg, #ff006e 0%, #8338ec 20%, #3a86ff 40%, #06ffa5 60%, #ffbe0b 80%, #fb5607 100%);
+        background: -moz-linear-gradient(45deg, #ff006e 0%, #8338ec 20%, #3a86ff 40%, #06ffa5 60%, #ffbe0b 80%, #fb5607 100%);
+        background: -o-linear-gradient(45deg, #ff006e 0%, #8338ec 20%, #3a86ff 40%, #06ffa5 60%, #ffbe0b 80%, #fb5607 100%);
+        background: linear-gradient(45deg, #ff006e 0%, #8338ec 20%, #3a86ff 40%, #06ffa5 60%, #ffbe0b 80%, #fb5607 100%);
+        background-size: 400% 400% !important;
+        animation: psychedelicGradient 8s ease infinite;
+        -webkit-animation: psychedelicGradient 8s ease infinite;
+        z-index: -100;
+    "></div>
 
     <div class="matrix-bg" id="matrixBg"></div>
 
@@ -339,7 +510,7 @@
 
     <script>
         function startExperience() {
-            document.getElementById('clickOverlay').style.display = 'none';
+            // This function is no longer needed but keeping for compatibility
         }
 
         function startAudio() {
@@ -348,8 +519,47 @@
             document.getElementById('startAudioButton').innerHTML = '🎵 AI VOICE ACTIVE';
             document.getElementById('startAudioButton').classList.add('playing');
             
-            // Start speaking immediately
-            speak(voicePhrases[0]);
+            // Safari-specific fix: Force voice loading
+            if (typeof speechSynth.getVoices === 'function') {
+                const voices = speechSynth.getVoices();
+                console.log('Voices available at start:', voices.length);
+                
+                if (voices.length === 0) {
+                    console.log('Safari: Waiting for voices to load...');
+                    // Safari needs time to load voices
+                    let loadAttempts = 0;
+                    const maxAttempts = 10;
+                    
+                    const checkVoices = () => {
+                        const currentVoices = speechSynth.getVoices();
+                        loadAttempts++;
+                        
+                        if (currentVoices.length > 0) {
+                            console.log('Safari: Voices loaded after', loadAttempts, 'attempts');
+                            speak(voicePhrases[0]);
+                        } else if (loadAttempts < maxAttempts) {
+                            setTimeout(checkVoices, 200);
+                        } else {
+                            console.log('Safari: Starting speech without specific voice');
+                            speak(voicePhrases[0]);
+                        }
+                    };
+                    
+                    // Also listen for voiceschanged event
+                    speechSynth.addEventListener('voiceschanged', function() {
+                        console.log('Safari: voiceschanged event fired');
+                        speak(voicePhrases[0]);
+                    }, { once: true });
+                    
+                    checkVoices();
+                } else {
+                    console.log('Starting speech immediately');
+                    speak(voicePhrases[0]);
+                }
+            } else {
+                console.log('Speech synthesis not fully supported, attempting basic speech');
+                speak(voicePhrases[0]);
+            }
         }
 
         function forceStartAudio() {
@@ -402,8 +612,14 @@
             if (speechSynth.speaking) {
                 console.log('Cancelling previous speech');
                 speechSynth.cancel();
+                // Small delay after cancelling
+                setTimeout(() => speakNow(text), 100);
+            } else {
+                speakNow(text);
             }
+        }
 
+        function speakNow(text) {
             currentUtterance = new SpeechSynthesisUtterance(text);
             currentUtterance.rate = 0.8;
             currentUtterance.pitch = 1.1;
@@ -461,6 +677,8 @@
         function createMatrix() {
             const matrixBg = document.getElementById('matrixBg');
             const chars = '01AGI∞λΨ∇∂∫∑π∆Ω';
+            
+            console.log('Creating matrix characters...');
 
             for (let i = 0; i < 100; i++) {
                 const span = document.createElement('span');
@@ -470,13 +688,22 @@
                 span.style.top = Math.random() * 100 + '%';
                 span.style.animationDelay = Math.random() * 2 + 's';
                 span.style.animation = 'fadeInOut 3s infinite';
+                span.style.color = '#ffffff';
+                span.style.fontSize = '12px';
+                span.style.fontFamily = 'monospace';
+                span.style.zIndex = '1';
+                span.style.opacity = '0.8';
                 matrixBg.appendChild(span);
             }
+            
+            console.log('Matrix characters created:', matrixBg.children.length);
         }
 
         // Neural network nodes
         function createNeuralNetwork() {
             const network = document.getElementById('neuralNetwork');
+            
+            console.log('Creating neural network nodes...');
 
             for (let i = 0; i < 20; i++) {
                 const node = document.createElement('div');
@@ -484,8 +711,17 @@
                 node.style.left = Math.random() * 100 + '%';
                 node.style.top = Math.random() * 100 + '%';
                 node.style.animationDelay = Math.random() * 3 + 's';
+                node.style.position = 'absolute';
+                node.style.width = '8px';
+                node.style.height = '8px';
+                node.style.background = 'white';
+                node.style.borderRadius = '50%';
+                node.style.boxShadow = '0 0 10px rgba(255,255,255,0.8)';
+                node.style.opacity = '1';
                 network.appendChild(node);
             }
+            
+            console.log('Neural network nodes created:', network.children.length);
         }
 
         const statusTexts = [
@@ -536,6 +772,32 @@
         window.addEventListener('load', () => {
             createMatrix();
             createNeuralNetwork();
+            
+            // Safari background fix
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            console.log('Browser detection - Safari:', isSafari);
+            
+            if (isSafari) {
+                console.log('Safari detected - using Safari background div');
+                const safariDiv = document.getElementById('safariBackground');
+                if (safariDiv) {
+                    // Force Safari to recognize the gradient
+                    safariDiv.style.background = '#8338ec';
+                    safariDiv.style.background = '-webkit-gradient(linear, left top, right bottom, color-stop(0%, #ff006e), color-stop(20%, #8338ec), color-stop(40%, #3a86ff), color-stop(60%, #06ffa5), color-stop(80%, #ffbe0b), color-stop(100%, #fb5607))';
+                    safariDiv.style.backgroundSize = '400% 400%';
+                    
+                    // Hide body background for Safari to avoid conflicts
+                    document.body.style.background = 'transparent';
+                }
+            } else {
+                console.log('Non-Safari browser detected - using body background');
+                // For non-Safari browsers, hide the Safari background div
+                const safariDiv = document.getElementById('safariBackground');
+                if (safariDiv) {
+                    safariDiv.style.display = 'none';
+                }
+                // Keep body background active for Chrome/Firefox
+            }
         });
     </script>
 </body>
