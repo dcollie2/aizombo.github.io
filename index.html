@@ -523,9 +523,11 @@
             document.getElementById('startAudioButton').innerHTML = '🎵 AI VOICE ACTIVE';
             document.getElementById('startAudioButton').classList.add('playing');
 
-            // Start background music if not already playing
+            // Start background music if not already playing (non-blocking)
             if (!backgroundMusicEnabled) {
-                await toggleBackgroundMusic();
+                toggleBackgroundMusic().catch(error => {
+                    console.log('Music activation failed, but continuing with voice:', error);
+                });
             }
 
             // Clear any existing queue
@@ -611,7 +613,7 @@
             const text = audioQueue[0];
             console.log('Processing Google TTS for:', text);
 
-            // Google Translate TTS endpoint with British English voice
+            // Google Translate TTS endpoint with British English voice - HTTPS for GitHub Pages
             const encodedText = encodeURIComponent(text);
             // Use British English (en-GB) with slower speed for pompous delivery
             const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en-GB&client=tw-ob&ttsspeed=0.6&total=1&idx=0&textlen=${text.length}`;
@@ -656,19 +658,104 @@
             currentAudio.onerror = (error) => {
                 console.error('Google TTS audio error:', error);
                 audioQueue.shift(); // Remove failed audio
-                setTimeout(() => {
-                    if (audioQueue.length > 0) {
-                        processAudioQueue();
-                    } else if (isPlaying) {
-                        // Try next phrase
-                        currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
-                        speak(voicePhrases[currentPhraseIndex]);
-                    }
-                }, 1000);
+                
+                // Try Web Speech API fallback for GitHub Pages
+                if ('speechSynthesis' in window) {
+                    console.log('Falling back to Web Speech API...');
+                    fallbackToWebSpeech(text);
+                } else {
+                    console.log('No speech synthesis available, continuing...');
+                    setTimeout(() => {
+                        if (audioQueue.length > 0) {
+                            processAudioQueue();
+                        } else if (isPlaying) {
+                            // Try next phrase
+                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                            speak(voicePhrases[currentPhraseIndex]);
+                        }
+                    }, 1000);
+                }
             };
 
             // Load the audio
             currentAudio.load();
+        }
+
+        // Web Speech API fallback for GitHub Pages
+        function fallbackToWebSpeech(text) {
+            if (!('speechSynthesis' in window)) {
+                console.log('Web Speech API not available');
+                return;
+            }
+
+            // Wait for voices to be loaded
+            function speakWithVoice() {
+                const voices = speechSynthesis.getVoices();
+                console.log('Available voices:', voices.length);
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // Try to find a British English voice
+                const britishVoice = voices.find(voice => 
+                    voice.lang.includes('en-GB') || 
+                    voice.name.toLowerCase().includes('british') ||
+                    voice.name.toLowerCase().includes('uk')
+                );
+                
+                if (britishVoice) {
+                    utterance.voice = britishVoice;
+                    console.log('Using British voice:', britishVoice.name);
+                } else {
+                    // Fallback to any English voice
+                    const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
+                    if (englishVoice) {
+                        utterance.voice = englishVoice;
+                        console.log('Using English voice:', englishVoice.name);
+                    }
+                }
+                
+                utterance.rate = 0.7; // Slower for pompous delivery
+                utterance.pitch = 0.9; // Slightly lower pitch
+                utterance.volume = 1.0;
+                
+                utterance.onend = () => {
+                    console.log('Web Speech utterance ended');
+                    if (isPlaying) {
+                        setTimeout(() => {
+                            if (audioQueue.length === 0) {
+                                // Add next phrase to queue
+                                currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                                speak(voicePhrases[currentPhraseIndex]);
+                            } else {
+                                processAudioQueue();
+                            }
+                        }, Math.random() * 2000 + 1000);
+                    }
+                };
+                
+                utterance.onerror = (error) => {
+                    console.error('Web Speech error:', error);
+                    if (isPlaying) {
+                        setTimeout(() => {
+                            currentPhraseIndex = (currentPhraseIndex + 1) % voicePhrases.length;
+                            speak(voicePhrases[currentPhraseIndex]);
+                        }, 1000);
+                    }
+                };
+                
+                speechSynthesis.speak(utterance);
+                console.log('✅ Web Speech API fallback speaking:', text);
+            }
+
+            // Check if voices are already loaded
+            if (speechSynthesis.getVoices().length > 0) {
+                speakWithVoice();
+            } else {
+                // Wait for voices to load
+                speechSynthesis.addEventListener('voiceschanged', speakWithVoice, { once: true });
+                // Fallback timeout in case voiceschanged never fires
+                setTimeout(speakWithVoice, 1000);
+            }
         }
 
         // Background music functionality - Jazz Cocktail Lounge
